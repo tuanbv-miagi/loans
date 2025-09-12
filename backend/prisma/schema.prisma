@@ -1,0 +1,104 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int       @id @default(autoincrement())
+  userName    String
+  fullName    String?
+  spamZalo    Int
+  email       String    @unique
+  password    String
+  avatarUrl   String?
+  role        Int
+  status      Int
+  lastLogin   DateTime?
+  deletedAt   DateTime? @db.DateTime
+  customers   Customer[]
+}
+
+model Customer {
+  id          Int     @id @default(autoincrement())
+  accountId   Int
+  firstName   String?
+  lastName    String?
+  email       String  @unique
+  phone       String  @unique
+  nationalId  String  @unique
+  address     String?
+  isSpamZalo   Int     @default(0)
+  isSpamIcloud Int     @default(0)
+
+  user        User    @relation(fields: [accountId], references: [id])
+  customerInfo CustomerInfo?
+  loans       Loan[]
+
+  created_at   DateTime @default(now())
+  updated_at   DateTime @updatedAt
+  deleted_at   DateTime? @db.DateTime
+}
+
+model CustomerInfo {
+  id                 Int       @id @default(autoincrement())
+  customerId         Int       @unique
+  icloud             String    @unique
+  idCardFront        String      // Ảnh CCCD mặt trước
+  idCardBack         String      // Ảnh CCCD mặt sau
+  idCardIssueDate    DateTime? @db.DateTime  // Ngày cấp
+  idCardIssuePlace   String     //    Nơi cấp
+  contactPhone1      String
+  contactPhone2      String
+  contactPhone3      String
+
+  // Thông tin tài khoản ngân hàng
+  bankName           String
+  bankAccountNumber  String
+  bankAccountName    String
+
+  // Thông tin công việc
+  workplaceName      String
+  workplaceAddress   String
+
+  // Đường dẫn ảnh
+  urlImages          String
+
+  customer           Customer  @relation(fields: [customerId], references: [id])
+
+  created_at         DateTime @default(now())
+  updated_at         DateTime @updatedAt
+  deleted_at         DateTime? @db.DateTime
+}
+
+model Loan {
+  id               Int       @id @default(autoincrement())
+  customerId       Int
+  loanCode         String    @unique
+
+  amount           Decimal   @db.Decimal(15, 2)
+  interestRate     Decimal   @db.Decimal(5, 2)
+  startDate        DateTime  @default(now())
+  dueDate          DateTime? @db.DateTime
+  dayAmount        Decimal   @db.Decimal(15, 2)
+  receivedAmount   Decimal   @db.Decimal(15, 2)
+  paidAmount       Decimal   @db.Decimal(15, 2)
+  sevenDayOfAmount Decimal   @db.Decimal(15, 2)
+  status           Int
+
+  customer         Customer  @relation(fields: [customerId], references: [id])
+
+  created_at       DateTime  @default(now())
+  updated_at       DateTime  @updatedAt
+  deleted_at       DateTime? @db.DateTime
+}
