@@ -27,10 +27,26 @@ const customers = [
 
 export default function CustomerPage() {
   const [search, setSearch] = useState("");
+  const [isOpenModal, setIsOpenModal] = useState(false);
+  const [customers, setCustomers] = useState([]);
 
   const filtered = customers.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  const getAllData = async () => {
+    try {
+      const response = await baseApi.get("/customers");
+      console.log("response: ", response);
+      setCustomers(response.data);
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu:", error);
+    }
+  }
+
+  useEffect(() => {
+    getAllData();
+  }, []);
 
   return (
     <div className="space-y-6">
@@ -41,7 +57,9 @@ export default function CustomerPage() {
           <button className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition w-[11rem] mr-[10px]">
             Xuất excel
           </button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition w-[11rem]">
+          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition w-[11rem]"
+            onClick={() => setIsOpenModal(true)}
+          >
             + Thêm khách hàng
           </button>
         </div>
@@ -133,6 +151,13 @@ export default function CustomerPage() {
           Sau
         </button>
       </div>
+
+      {/* Modal add data */}
+      {isOpenModal && (
+        <CreateData
+          onClose={() => setIsOpenModal(false)}
+        />
+      )}
     </div>
   );
 }
