@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Search, Edit, Trash2, Eye } from "lucide-react";
+import baseApi from "../../api/baseApi";
 
 const customers = [
   {
@@ -153,11 +154,11 @@ export default function CustomerPage() {
       </div>
 
       {/* Modal add data */}
-      {isOpenModal && (
+      {/* {isOpenModal && (
         <CreateData
           onClose={() => setIsOpenModal(false)}
         />
-      )}
+      )} */}
     </div>
   );
 }
