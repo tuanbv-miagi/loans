@@ -22,4 +22,18 @@ const customers = [
   },
 ];
 
-export const getAllCustomer = () => customers;
+const CustomerService = {
+  async getAll() {
+    return customers;
+  },
+
+  async create(attributes) {
+
+  },
+
+  async update(id, attributes) {},
+
+  async delete(id) {},
+};
+
+module.exports = CustomerService;
