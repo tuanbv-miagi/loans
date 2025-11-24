@@ -1,16 +1,33 @@
 import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import baseApi from "../../api/baseApi";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async(e) => {
     e.preventDefault();
-    console.log("Login data:", form);
-    // TODO: call API login
+    setError("");
+
+    try {
+      const res = await baseApi.post("/auth/login", form);
+      console.log("res: ", res);
+
+      if (res.status === 200) {
+        localStorage.setItem("token", res.data.token);
+        navigate("/");
+      } else {
+        setError(res.message);
+      }
+    } catch (err) {
+      setError("Tài khoản hoặc mật khẩu không đúng");
+    }
   };
 
   return (
