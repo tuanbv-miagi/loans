@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { Search, Edit, Trash2, Eye } from "lucide-react";
+import { Search, Edit, Trash2, Eye, RotateCcw } from "lucide-react";
 import baseApi from "../../api/baseApi";
+import DeleteConfirm from "./delete";
 
 const customers = [
   {
@@ -27,9 +28,23 @@ const customers = [
 ];
 
 export default function CustomerPage() {
+  const form = {
+    name: '',
+    email: '',
+    posittion: '',
+    status: ''
+  };
+  const PAGE_DEFAULT = 1;
+  const LIMIT = 10;
+
   const [search, setSearch] = useState("");
   const [isOpenModal, setIsOpenModal] = useState(false);
+  const [isOpenModalDelete, setIsOpenModalDelete] = useState(false);
   const [customers, setCustomers] = useState([]);
+  const [formSearch, setFormSearch] = useState(form);
+  const [page, setPage] = useState(PAGE_DEFAULT);
+  const [limit, setLimit] = useState(LIMIT);
+  const [total, setTotal] = useState(0);
 
   const filtered = customers.filter((c) =>
     c.name.toLowerCase().includes(search.toLowerCase())
@@ -49,6 +64,18 @@ export default function CustomerPage() {
     getAllData();
   }, []);
 
+  const handleChangeFormSearch = (e) => {
+    const { name, value } = e.target;
+    setFormSearch((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const resetForm = () => {
+    setFormSearch(form);
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -67,7 +94,7 @@ export default function CustomerPage() {
       </div>
 
       {/* Search */}
-      <div className="flex items-center bg-white p-4 rounded-lg shadow">
+      {/* <div className="flex items-center bg-white p-4 rounded-lg shadow">
         <Search size={18} className="text-gray-400 mr-2" />
         <input
           type="text"
@@ -76,6 +103,123 @@ export default function CustomerPage() {
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 outline-none"
         />
+      </div> */}
+      <div className="bg-white p-4 rounded-lg shadow space-y-3">
+        <div className="text-[20px] font-bold">Thông tin tìm kiếm</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Nhập tên sách */}
+          <div className="flex flex-col space-y-1">
+            <label className="font-medium text-gray-700 text-sm">
+              Tên khách hàng
+            </label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+              <input
+                type="text"
+                name="name"
+                placeholder="Nhập tên khách hàng"
+                value={formSearch.name || ""}
+                onChange={handleChangeFormSearch}
+                className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          {/* Nhập Tác giả */}
+          <div className="flex flex-col space-y-1">
+            <label className="font-medium text-gray-700 text-sm">
+              Email
+            </label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+              <input
+                type="text"
+                name="email"
+                placeholder="Nhập email"
+                value={formSearch.email || ""}
+                onChange={handleChangeFormSearch}
+                className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          {/* Nhập năm xuất bản */}
+          {/* <div className="flex flex-col space-y-1">
+            <label className="font-medium text-gray-700 text-sm">
+              Năm sản xuất
+            </label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+              <input
+                type="number"
+                name="releaseYear"
+                placeholder="Nhập năm sản xuất"
+                value={formSearch.releaseYear || ""}
+                onChange={handleChangeFormSearch}
+                className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-400"
+              />
+            </div>
+          </div> */}
+
+          {/* Chọn ngôn ngữ */}
+          {/* <div className="flex flex-col space-y-1">
+            <label className="font-medium text-gray-700 text-sm">
+              Ngôn ngữ
+            </label>
+            <select
+              name="language"
+              value={formSearch.language || ""}
+              onChange={handleChangeFormSearch}
+              placeholder="Chọn ngôn ngữ"
+              className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all"
+            >
+              <option value=""></option>
+              <option value="vi">Tiếng Việt</option>
+              <option value="en">Tiếng Anh</option>
+            </select>
+          </div> */}
+
+          {/* Chọn loại sách */}
+          <div className="flex flex-col space-y-1">
+            <label className="font-medium text-gray-700 text-sm">
+              Loại sách
+            </label>
+            <select
+              name="status"
+              value={formSearch.status ?? ""}
+              onChange={handleChangeFormSearch}
+              placeholder="Chọn loại sách"
+              className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all"
+            >
+              <option value=""></option>
+              <option value="true">Hoạt động</option>
+              <option value="false">Khóa</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Nút tìm kiếm */}
+        <div className="flex justify-end">
+          <button
+            onClick={() => resetForm()}
+            className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
+          >
+            <div className="flex align-anchor">
+              <RotateCcw size={20}/>
+              <span className="ml-[5px]">Dọn dẹp</span>
+            </div>
+          </button>
+
+          <button
+            onClick={() => {
+              setPage(1);
+              getAllData();
+            }}
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ml-3"
+          >
+            <div className="flex align-anchor">
+              <Search size={20}/>
+              <span className="ml-[5px]">Tìm kiếm</span>
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* Table */}
@@ -159,6 +303,12 @@ export default function CustomerPage() {
           onClose={() => setIsOpenModal(false)}
         />
       )} */}
+
+      {isOpenModalDelete && (
+        <DeleteConfirm
+          onClose={() => setIsOpenModalDelete(false)}
+        />
+      )}
     </div>
   );
 }
