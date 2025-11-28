@@ -28,6 +28,10 @@ const authController = {
         token: token
       },
     });
+  },
+
+  async createAccount(req, res) {
+
   }
 };
 

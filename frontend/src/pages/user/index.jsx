@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Search, Edit, Trash2, Eye, UserPlus, Lock, Loader2, Eraser } from "lucide-react";
+import { Search, Edit, Trash2, Eye, UserPlus, Lock, Loader2, Eraser, Unlock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CreateUserPage from "./create.jsx";
 import Paginate from "../../components/paginate";
@@ -52,6 +52,7 @@ export default function UserPage() {
   const [isOpenModalCreate, setIsOpenModalCreate] = useState(false);
   const [isOpenModalDeleteConfirm, setIsOpenModalDeleteConfirm] = useState(false);
   const [isOpenModalLockConfirm, setIsOpenModalLockConfirm] = useState(false);
+  const [isOpenModalUnLockConfirm, setIsOpenModalUnLockConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
   // const [users, setUsers] = useState([]);
   const [formSearch, setFormSearch] = useState({
@@ -99,6 +100,8 @@ export default function UserPage() {
       setIsOpenModalDeleteConfirm(false);
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -109,6 +112,20 @@ export default function UserPage() {
       setIsOpenModalLockConfirm(false);
     } catch (error) {
       console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  const unLockData = async (id) => {
+    try {
+      // setLoading(true);
+      // TODO handle logic delete
+      setIsOpenModalLockConfirm(false);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -296,9 +313,9 @@ export default function UserPage() {
                     )}
                   </td>
                   <td className="p-3 flex justify-center gap-3">
-                    <button className="text-blue-600 hover:text-blue-800">
+                    {/* <button className="text-blue-600 hover:text-blue-800">
                       <Eye size={18} />
-                    </button>
+                    </button> */}
                     <button className="text-yellow-600 hover:text-yellow-800">
                       <Edit size={18} />
                     </button>
@@ -306,7 +323,10 @@ export default function UserPage() {
                       <Trash2 size={18} onClick={() => setIsOpenModalDeleteConfirm(true)}/>
                     </button>
                     <button className="text-gray-600 hover:text-gray-800">
-                      <Lock size={18} />
+                      <Lock size={18} onClick={() => setIsOpenModalLockConfirm(true)}/>
+                    </button>
+                    <button className="text-gray-600 hover:text-gray-800">
+                      <Unlock size={18} onClick={() => setIsOpenModalUnLockConfirm(true)}/>
                     </button>
                   </td>
                 </tr>
@@ -335,12 +355,32 @@ export default function UserPage() {
 
       <ConfirmDialog
         open={isOpenModalDeleteConfirm}
-        title="Xác nhận xoá?"
+        title="Xác nhận xoá thông tin người dùng?"
         message="Bạn có chắc muốn xoá mục này? Hành động này không thể hoàn tác."
         confirmText="Xóa"
         cancelText="Hủy"
         onConfirm={deleteData}
         onCancel={() => setIsOpenModalDeleteConfirm(false)}
+      />
+
+      <ConfirmDialog
+        open={isOpenModalLockConfirm}
+        title="Xác nhận khóa thông tin người dùng?"
+        message="Bạn có chắc muốn khóa mục này?"
+        confirmText="khóa"
+        cancelText="Hủy"
+        onConfirm={lockData}
+        onCancel={() => setIsOpenModalLockConfirm(false)}
+      />
+
+      <ConfirmDialog
+        open={isOpenModalLockConfirm}
+        title="Xác nhận khóa thông tin người dùng?"
+        message="Bạn có chắc muốn khóa mục này?"
+        confirmText="Mở khóa"
+        cancelText="Hủy"
+        onConfirm={unLockData}
+        onCancel={() => setIsOpenModalUnLockConfirm(false)}
       />
     </div>
   );

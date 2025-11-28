@@ -11,7 +11,9 @@ app.use(express.json());
 
 // Routes
 app.use("/api/auth", authRoutes);
-app.use("api/customers", authJwt.verifyToken, customerRoutes);
-app.use("/api/users", authJwt.verifyToken, userRoutes);
+// app.use("api/customers", authJwt.verifyToken, customerRoutes);
+// app.use("/api/users", authJwt.verifyToken, userRoutes);
+app.use("api/customers", customerRoutes);
+app.use("/api/users", userRoutes);
 
 module.exports = app;
