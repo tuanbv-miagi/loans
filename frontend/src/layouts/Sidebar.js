@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
   User,
@@ -19,6 +19,12 @@ const menu = [
 
 export default function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
+
+  const logOut = () => {
+    localStorage.removeItem("token");
+    navigate('/login')
+  }
 
   return (
     <div className="w-64 text-white flex flex-col bg-[#1D2939]">
@@ -47,7 +53,9 @@ export default function Sidebar() {
 
       {/* Logout */}
       <div className="px-4 py-4 border-t border-blue-600">
-        <button className="flex items-center gap-2 px-3 py-2 w-full rounded-lg hover:bg-blue-800 transition">
+        <button className="flex items-center gap-2 px-3 py-2 w-full rounded-lg hover:bg-blue-800 transition"
+          onClick={logOut}
+        >
           <LogOut size={18} />
           Đăng xuất
         </button>

@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 const chartData = [
   { month: "Jan", disbursed: 120, interest: 80 },
@@ -9,6 +10,12 @@ const chartData = [
 ];
 
 export default function Home() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) navigate("/login");
+  }, [navigate]);
+
   return (
     <div className="space-y-6">
       {/* Title */}

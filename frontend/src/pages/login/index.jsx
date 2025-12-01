@@ -4,7 +4,7 @@ import baseApi from "../../api/baseApi";
 
 export default function Login() {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
+  const [form, setForm] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
 
   const handleChange = (e) => {
@@ -37,16 +37,16 @@ export default function Login() {
         {/* Email */}
         <div>
           <label className="block mb-1 text-sm font-medium text-gray-700">
-            Email
+            Tên đăng nhập
           </label>
           <input
-            type="email"
-            name="email"
-            value={form.email}
+            type="text"
+            name="username"
+            value={form.username}
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="you@example.com"
+            placeholder="Nhập tên đăng nhập"
           />
         </div>
 
@@ -62,10 +62,10 @@ export default function Login() {
             onChange={handleChange}
             required
             className="w-full px-3 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
-            placeholder="••••••••"
+            placeholder="Nhập mật khẩu"
           />
         </div>
-
+        {error && <p className="text-red-600">{error}</p>}
         {/* Remember me + Forgot password */}
         <div className="flex items-center justify-between text-sm">
           <label className="flex items-center gap-2">

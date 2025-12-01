@@ -1,33 +1,20 @@
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
-require("dotenv").config();
+const authService = require("../services/AuthService");
 
 const authController = {
   async login(req, res) {
-    const { username, password } = req.body;
+    try {
+      const { username, password } = req.body;
+      const data = await authService.login(username, password);
 
-    if (username !== process.env.AUTH_USER) {
-      return res.status(401).json({ message: "Tên đăng nhập không đúng" });
+      return res.status(data.status).json({
+        status: data.status,
+        message: data.message,
+        data: data.data || null,
+      });
+    } catch (error) {
+      console.error("Login error: ", error);
+      return res.status(500).json({ message: "Lỗi server"});
     }
-
-    const passwordMatch = await bcrypt.compare(password, process.env.AUTH_PASS_HASH);
-    if (!passwordMatch) {
-      return res.status(401).json({ message: "Mật khẩu không đúng" });
-    }
-
-    const token = jwt.sign(
-      { username },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_EXPIRES }
-    )
-
-    return res.json({
-      message: "Đăng nhập thành công",
-      status: 200,
-      data: {
-        token: token
-      },
-    });
   },
 
   async createAccount(req, res) {

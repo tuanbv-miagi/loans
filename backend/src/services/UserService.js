@@ -1,6 +1,133 @@
-const users = [
-  { id: 1, name: "Alice" },
-  { id: 2, name: "Bob" },
-];
+const userRepo = require("../repositories/UserRepository");
 
-exports.getAllUsers = () => users;
+class UserService {
+  /**
+   * Get all users
+   * @returns array of users
+   */
+  async getAllUsers() {
+    const users = await userRepo.getAllUsers();
+    return {
+      status: 200,
+      message: "Lấy danh sách người dùng thành công",
+      data: users,
+    }
+  };
+
+  /**
+   * Get paginated users with filter
+   * @param {*} atttributes
+   * @returns array of users with pagination
+   */
+  async paginate(atttributes) {
+    const page = parseInt(atttributes.page) || 1;
+    const limit = parseInt(atttributes.limit) || 20;
+    const params = {
+      userName: atttributes.userName || null,
+      email: atttributes.email || null,
+      role: atttributes.role || null,
+      status: atttributes.status || null,
+      page: page,
+      limit: limit,
+    }
+
+    const { rows, count } = await userRepo.findAllWithFilter(params);
+
+    return {
+      status: 200,
+      message: "Lấy danh sách người dùng thành công",
+      data: rows,
+      pagination: {
+        total: count,
+        page: page,
+        limit: limit,
+        totalPages: Math.ceil(count / limit),
+      }
+    }
+
+  };
+
+  /**
+   * Create new user
+   * @param {*} attributes
+   * @returns new user
+   */
+  async create(attributes) {
+    const existEmail = await userRepo.findByEmail(attributes.email);
+    if (existEmail) {
+      return {
+        status: 400,
+        message: "Email đã tồn tại",
+      }
+    }
+
+    const hashedPassword = await bcrypt.hash(attributes.password, 10);
+
+    const newUser = await userRepo.create({
+      ...attributes,
+      password: hashedPassword,
+    })
+
+    return {
+      status: 201,
+      message: "Thêm mới tài khoản thành công",
+      data: {
+        id: newUser.id,
+        userName: newUser.userName,
+        fullName: newUser.fullName,
+        email: newUser.email,
+        role: newUser.role,
+      }
+    }
+  };
+
+  /**
+   * Update user
+   * @param {*} id
+   * @param {*} attributes
+   * @returns updated user
+   */
+  async update(id, attributes) {
+    const user = await userRepo.findById(id);
+    if (!user) {
+      return {
+        status: 404,
+        message: "Người dùng không tồn tại",
+      }
+    }
+    const updatedUser = await userRepo.update(id, attributes);
+    return {
+      status: 200,
+      message: "Cập nhật người dùng thành công",
+      data: updatedUser,
+    }
+  };
+
+  /**
+   * Delete user
+   * @param {*} id
+   * @returns user
+   */
+  async delete(id) {
+    const user = await userRepo.findById(id);
+    if (!user) {
+      return {
+        status: 404,
+        message: "Người dùng không tồn tại",
+      }
+    }
+    const deletedUser = await userRepo.update(
+      id,
+      { deletedAt: new Date() }
+    );
+
+    return {
+      status: 200,
+      message: "Xóa người dùng thành công",
+      data: deletedUser,
+    }
+  };
+}
+
+module.exports = new UserService();
+
