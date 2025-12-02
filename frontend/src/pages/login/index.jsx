@@ -25,8 +25,8 @@ export default function Login() {
       } else {
         setError(res.message);
       }
-    } catch (err) {
-      setError("Tài khoản hoặc mật khẩu không đúng");
+    } catch (error) {
+      setError(error?.response?.data?.message || "Tài khoản hoặc mật khẩu không đúng");
     }
   };
 

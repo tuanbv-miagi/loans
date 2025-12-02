@@ -25,8 +25,8 @@ async function main() {
       email: "admin@gmail.com",
       password: hashedPwd,
       role: 1,
-      status: 1,
-      avatarUrl: ""
+      status: 0,
+      avatarUrl: "",
     },
   });
 

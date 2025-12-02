@@ -7,7 +7,7 @@ export default function Paginate({ setPage, page, total, setLimit, limit, getLis
     getList();
   }
 
-  return (
+  return total > 1 && (
     <div className="flex justify-between items-center gap-4 mt-4">
       <div className="flex items-center gap-2">
         <label className="text-gray-700 text-sm font-medium">Hiển thị:</label>
@@ -22,7 +22,6 @@ export default function Paginate({ setPage, page, total, setLimit, limit, getLis
         </select>
       </div>
 
-      {total > 1 && (
         <div className="flex items-center gap-2">
           <button
             disabled={page === 1}
@@ -62,7 +61,6 @@ export default function Paginate({ setPage, page, total, setLimit, limit, getLis
             Sau
           </button>
         </div>
-      )}
     </div>
   );
 }

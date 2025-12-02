@@ -1,4 +1,4 @@
-const prisma = require('../../prisma/client');
+const prisma = require("../../prisma/client");
 const { Op } = require("sequelize");
 
 class UserRepository {
@@ -8,7 +8,7 @@ class UserRepository {
    * @returns user
    */
   findById(id) {
-    return prisma.user.findByPk({
+    return prisma.user.findUnique({
       where: { id: id, deletedAt: null },
     });
   }
@@ -66,9 +66,9 @@ class UserRepository {
    */
   update(id, data) {
     return prisma.user.update({
-      where: {id: id},
+      where: { id: id },
       data: data,
-    })
+    });
   }
 
   /**
@@ -78,45 +78,51 @@ class UserRepository {
   getAllUsers() {
     return prisma.user.findMany({
       where: { deletedAt: null },
-      orderby: { createdAt: 'desc' },
+      orderby: { createdAt: "desc" },
     });
   }
 
-  findAllWithFilter(params) {
-    const condditions = {};
-
-    const offset = (params.page - 1) * params.limit;
-
-    // Find by username
-    if (params.userName) {
-      condditions.userName = {
-        [Op.like]: `%${params.userName}%`
-      }
+  /**
+   * Get user with pagination
+   * @param {*} params
+   * @returns array of users
+   */
+  async findAllWithFilter(params) {
+    const where = { deletedAt: null };
+    const OR = [];
+    if (params.userName?.trim()) {
+      OR.push({
+        userName: { contains: params.userName.trim() },
+      });
     }
-
-    // Find by email
-    if (params.email) {
-      condditions.email = {
-        [Op.like]: `%${params.email}%`
-      }
+    if (params.email?.trim()) {
+      OR.push({
+        email: { contains: params.email.trim() },
+      });
     }
+    if (OR.length > 0) where.OR = OR;
 
-    // Find by role
     if (params.role) {
-      condditions.role = params.role;
+      where.role = params.role === "admin" ? 1 : 0;
     }
 
-    // Find by status
     if (params.status) {
-      condditions.status = params.status;
+      where.status = params.status === "active" ? 0 : 1;
     }
 
-    const { ros, count } = prisma.user.findAndCountAll({
-      where: condditions,
-      limit: params.limit,
-      offset: offset,
-      order: [['createdAt', 'DESC']],
-    });
+    const page = Number(params.page) || 1;
+    const limit = Number(params.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const [rows, count] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.user.count({ where }),
+    ]);
 
     return { rows, count };
   }

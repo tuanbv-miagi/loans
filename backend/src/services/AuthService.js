@@ -14,7 +14,7 @@ class AuthService {
       }
     }
 
-    if (user.status !== 1) {
+    if (user.status !== 0) {
       return {
         status: 403,
         message: "Tài khoản bị khóa. Vui lòng liên hệ quản trị viên",

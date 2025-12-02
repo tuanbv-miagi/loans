@@ -1,45 +1,36 @@
 import React, { useState } from "react";
-import { Search, Edit, Trash2, Eye, UserPlus, Lock, Loader2, Eraser, Unlock } from "lucide-react";
+import {
+  Search,
+  Edit,
+  Trash2,
+  UserPlus,
+  Lock,
+  Loader2,
+  Eraser,
+  Unlock,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CreateUserPage from "./create.jsx";
-import Paginate from "../../components/paginate";
 import Contants from "../../utils/Contants.jsx";
 import ConfirmDialog from "../../components/ConfirmDialog.jsx";
-
-const users = [
-  {
-    id: 1,
-    name: "Nguyễn Văn Admin",
-    email: "admin@example.com",
-    role: "Admin",
-    status: "Hoạt động",
-  },
-  {
-    id: 2,
-    name: "Trần Thị Nhân Viên",
-    email: "staff@example.com",
-    role: "Nhân viên",
-    status: "Khóa",
-  },
-  {
-    id: 3,
-    name: "Lê Văn Kế Toán",
-    email: "accountant@example.com",
-    role: "Kế toán",
-    status: "Hoạt động",
-  },
-];
+import baseApi from "../../api/baseApi.js";
+import Paginate from "../../components/paginate.jsx";
+import { formatDateTime } from "../../utils/DateFormat.jsx";
+import SlideAlert from "../../components/SlideAlert.jsx";
+import { useEffect } from "react";
 
 export default function UserPage() {
   const textScreens = {
     no: "STT",
-    userName: "Họ tên",
+    fullName: "Họ và tên",
+    userName: "Tên đăng nhập",
     email: "Email",
     role: "Vai trò",
     status: "Trạng thái",
     createdAt: "Ngày tạo",
     updatedAt: "Ngày cập nhật",
     actions: "Hành động",
+    lastLogin: "Đăng nhập lần cuối",
   };
 
   const navigate = useNavigate();
@@ -48,13 +39,19 @@ export default function UserPage() {
   const [page, setPage] = useState(PAGE_DEFAULT);
   const [limit, setLimit] = useState(LIMIT);
   const [total, setTotal] = useState(0);
-  const [search, setSearch] = useState("");
   const [isOpenModalCreate, setIsOpenModalCreate] = useState(false);
-  const [isOpenModalDeleteConfirm, setIsOpenModalDeleteConfirm] = useState(false);
+  const [isOpenModalDeleteConfirm, setIsOpenModalDeleteConfirm] =
+    useState(false);
   const [isOpenModalLockConfirm, setIsOpenModalLockConfirm] = useState(false);
-  const [isOpenModalUnLockConfirm, setIsOpenModalUnLockConfirm] = useState(false);
+  const [isOpenModalUnLockConfirm, setIsOpenModalUnLockConfirm] =
+    useState(false);
   const [loading, setLoading] = useState(false);
-  // const [users, setUsers] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [isOpenAlert, setIsOpenAlert] = useState(false);
+  const [alertType, setAlertType] = useState("success");
+  const [alertMsg, setAlertMsg] = useState("");
+  const [alertId, setAlertId] = useState("");
+  const [userId, setUserId] = useState(null);
   const [formSearch, setFormSearch] = useState({
     userName: "",
     email: "",
@@ -62,8 +59,7 @@ export default function UserPage() {
     status: "",
   });
 
-
-    const handleChangeFormSearch = (e) => {
+  const handleChangeFormSearch = (e) => {
     const { name, value } = e.target;
     setFormSearch((prev) => ({
       ...prev,
@@ -73,61 +69,106 @@ export default function UserPage() {
 
   const getAllData = async (search = formSearch) => {
     const params = {
-      page,
-      limit,
-      paramSearch: search
-    }
+      page: page,
+      limit: limit,
+      paramSearch: search,
+    };
     try {
       setLoading(true);
-      // const response = await baseApi.post("/audio-books", params);
-      // response.data = response.data.map((item, index) => ({
-      //   ...item,
-      //   no: (page - 1) * limit + index + 1,
-      // }));
-      // setTotal(response.totalPages);
-      // setUsers(response.data);
+      const response = await baseApi.post("/users/paginate", params);
+      response.data = response?.data.map((item, index) => ({
+        ...item,
+        no: (page - 1) * limit + index + 1,
+      }));
+      setTotal(response.pagination?.totalPages);
+      setUsers(response.data);
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu:", error);
+      setIsOpenAlert(true);
+      setAlertId("user_get_list");
+      setAlertMsg(
+        error?.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại sau"
+      );
+      setAlertType("error");
     } finally {
       setLoading(false);
     }
-  }
+  };
 
-  const deleteData = async (id) => {
+  const deleteData = async () => {
     try {
       setLoading(true);
-      // TODO handle logic delete
-      setIsOpenModalDeleteConfirm(false);
+      const response = await baseApi.delete(`/users/delete/${userId}`);
+      if (response?.status === 200) {
+        await getAllData();
+        setIsOpenModalDeleteConfirm(false);
+      }
+      setIsOpenAlert(true);
+      setAlertId("user_delete");
+      setAlertMsg(response.message);
+      setAlertType(response?.status === 200 ? "success" : "error");
     } catch (error) {
-      console.log(error);
+      setIsOpenAlert(true);
+      setAlertId("user_delete");
+      setAlertMsg(
+        error?.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại sau"
+      );
+      setAlertType("error");
     } finally {
+      setUserId(null);
       setLoading(false);
     }
-  }
+  };
 
-  const lockData = async (id) => {
+  const lockData = async () => {
     try {
       setLoading(true);
-      // TODO handle logic delete
-      setIsOpenModalLockConfirm(false);
+      const response = await baseApi.put(`/users/lock/${userId}`);
+      if (response?.status === 200) {
+        await getAllData();
+        setIsOpenModalLockConfirm(false);
+      }
+      setIsOpenAlert(true);
+      setAlertId("user_lock");
+      setAlertMsg(response.message);
+      setAlertType(response?.status === 200 ? "success" : "error");
     } catch (error) {
-      console.log(error);
+      setIsOpenAlert(true);
+      setAlertId("user_lock");
+      setAlertMsg(
+        error?.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại sau"
+      );
+      setAlertType("error");
     } finally {
+      setUserId(null);
       setLoading(false);
     }
-  }
+  };
 
-  const unLockData = async (id) => {
+  const unLockData = async () => {
     try {
-      // setLoading(true);
-      // TODO handle logic delete
-      setIsOpenModalLockConfirm(false);
+      setLoading(true);
+      const response = await baseApi.put(`/users/unlock/${userId}`);
+      if (response?.status === 200) {
+        await getAllData();
+        setIsOpenModalUnLockConfirm(false);
+      }
+      setIsOpenAlert(true);
+      setAlertId("user_unlock");
+      setAlertMsg(response.message);
+      setAlertType(response?.status === 200 ? "success" : "error");
     } catch (error) {
-      console.log(error);
+      setIsOpenAlert(true);
+      setAlertId("user_unlock");
+      setAlertMsg(
+        error?.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại sau"
+      );
+      setAlertType("error");
     } finally {
+      setUserId(null);
       setLoading(false);
     }
-  }
+  };
 
   const clearFormSearch = () => {
     setFormSearch({
@@ -139,12 +180,24 @@ export default function UserPage() {
     setPage(PAGE_DEFAULT);
   };
 
-  useState(() => {
-    // getAllData();
-  }, []);
+  useEffect(() => {
+    getAllData();
+  }, [page, limit]);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) navigate("/login");
+  }, [navigate]);
 
   return (
     <div className="space-y-6">
+      <SlideAlert
+        open={isOpenAlert}
+        onClose={() => setIsOpenAlert(false)}
+        type={alertType}
+        message={alertMsg}
+        alertId={alertId}
+      />
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Quản lý người dùng</h2>
@@ -208,11 +261,11 @@ export default function UserPage() {
               className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all"
             >
               <option value=""></option>
-                {Contants.roles.map((role) => (
-                  <option key={role.value} value={role.value}>
-                    {role.label}
-                  </option>
-                ))}
+              {Contants.roles.map((role) => (
+                <option key={role.value} value={role.value}>
+                  {role.label}
+                </option>
+              ))}
             </select>
           </div>
 
@@ -229,11 +282,11 @@ export default function UserPage() {
               className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all"
             >
               <option value=""></option>
-                {Contants.userStatus.map((role) => (
-                  <option key={role.value} value={role.value}>
-                    {role.label}
-                  </option>
-                ))}
+              {Contants.userStatus.map((role) => (
+                <option key={role.value} value={role.value}>
+                  {role.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -245,7 +298,7 @@ export default function UserPage() {
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
           >
             <div className="flex align-anchor">
-              <Eraser size={20}/>
+              <Eraser size={20} />
               <span className="ml-[5px]">Làm mới</span>
             </div>
           </button>
@@ -258,7 +311,7 @@ export default function UserPage() {
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ml-3"
           >
             <div className="flex align-anchor">
-              <Search size={20}/>
+              <Search size={20} />
               <span className="ml-[5px]">Tìm kiếm</span>
             </div>
           </button>
@@ -275,6 +328,8 @@ export default function UserPage() {
               <th className="p-3">{textScreens.email}</th>
               <th className="p-3">{textScreens.role}</th>
               <th className="p-3">{textScreens.status}</th>
+              <th className="p-3">{textScreens.lastLogin}</th>
+              <th className="p-3">{textScreens.createdAt}</th>
               <th className="p-3 text-center">{textScreens.actions}</th>
             </tr>
           </thead>
@@ -295,14 +350,16 @@ export default function UserPage() {
                 </td>
               </tr>
             ) : (
-              users.map((u, index) => (
-                <tr key={u.id} className="border-t hover:bg-gray-50">
-                  <td className="p-3">{index + 1}</td>
-                  <td className="p-3 font-medium">{u.name}</td>
-                  <td className="p-3">{u.email}</td>
-                  <td className="p-3">{u.role}</td>
+              users.map((user, _) => (
+                <tr key={user.id} className="border-t hover:bg-gray-50">
+                  <td className="p-3">{user.no}</td>
+                  <td className="p-3 font-medium">{user.userName}</td>
+                  <td className="p-3">{user.email}</td>
                   <td className="p-3">
-                    {u.status === "Hoạt động" ? (
+                    {user.role === 1 ? "Quản trị viên" : "Người dùng"}
+                  </td>
+                  <td className="p-3">
+                    {user.status === 0 ? (
                       <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-600">
                         Hoạt động
                       </span>
@@ -312,21 +369,37 @@ export default function UserPage() {
                       </span>
                     )}
                   </td>
+                  <td className="p-3">{formatDateTime(user.lastLogin)}</td>
+                  <td className="p-3">{formatDateTime(user.createdAt)}</td>
                   <td className="p-3 flex justify-center gap-3">
-                    {/* <button className="text-blue-600 hover:text-blue-800">
-                      <Eye size={18} />
-                    </button> */}
                     <button className="text-yellow-600 hover:text-yellow-800">
                       <Edit size={18} />
                     </button>
                     <button className="text-red-600 hover:text-red-800">
-                      <Trash2 size={18} onClick={() => setIsOpenModalDeleteConfirm(true)}/>
+                      <Trash2
+                        size={18}
+                        onClick={() => (
+                          setIsOpenModalDeleteConfirm(true), setUserId(user.id)
+                        )}
+                      />
                     </button>
                     <button className="text-gray-600 hover:text-gray-800">
-                      <Lock size={18} onClick={() => setIsOpenModalLockConfirm(true)}/>
-                    </button>
-                    <button className="text-gray-600 hover:text-gray-800">
-                      <Unlock size={18} onClick={() => setIsOpenModalUnLockConfirm(true)}/>
+                      {user.status === 0 ? (
+                        <Lock
+                          size={18}
+                          onClick={() => (
+                            setIsOpenModalLockConfirm(true), setUserId(user.id)
+                          )}
+                        />
+                      ) : (
+                        <Unlock
+                          size={18}
+                          onClick={() => (
+                            setIsOpenModalUnLockConfirm(true),
+                            setUserId(user.id)
+                          )}
+                        />
+                      )}
                     </button>
                   </td>
                 </tr>
@@ -336,7 +409,7 @@ export default function UserPage() {
         </table>
       </div>
 
-      {/* Pagination (demo) */}
+      {/* Pagination */}
       <Paginate
         setPage={setPage}
         page={page}
@@ -350,6 +423,7 @@ export default function UserPage() {
         <CreateUserPage
           onClose={() => setIsOpenModalCreate(false)}
           setLoading={setLoading}
+          getAllData={getAllData}
         />
       )}
 
@@ -374,9 +448,9 @@ export default function UserPage() {
       />
 
       <ConfirmDialog
-        open={isOpenModalLockConfirm}
-        title="Xác nhận khóa thông tin người dùng?"
-        message="Bạn có chắc muốn khóa mục này?"
+        open={isOpenModalUnLockConfirm}
+        title="Xác nhận mở khóa thông tin người dùng?"
+        message="Bạn có chắc muốn mở khóa mục này?"
         confirmText="Mở khóa"
         cancelText="Hủy"
         onConfirm={unLockData}

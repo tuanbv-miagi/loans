@@ -2,18 +2,20 @@ import React, { useState } from "react";
 import { Validator } from "../../utils/Validator";
 import baseApi from "../../api/baseApi";
 import Contants from "../../utils/Contants.jsx";
+import SlideAlert from "../../components/SlideAlert.jsx";
 
-export default function CreateUserPage({ onClose, setLoading }) {
+export default function CreateUserPage({ onClose, setLoading, getAllData }) {
   const form = {
     userName: "",
+    fullName: "",
     password: "",
     passwordConfirm: "",
     email: "",
     role: "user",
-    status: "",
   };
 
   const textScreens = {
+    fullName: "Họ và tên",
     userName: "Tên đăng nhập",
     password: "Mật khẩu",
     passwordConfirm: "Xác nhận mật khẩu",
@@ -24,6 +26,9 @@ export default function CreateUserPage({ onClose, setLoading }) {
 
   const [formData, setFormData] = useState(form);
   const [errors, setErrors] = useState({});
+  const [isOpenAlert, setIsOpenAlert] = useState(false);
+  const [alertType, setAlertType] = useState("success");
+  const [alertMsg, setAlertMsg] = useState("");
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -36,12 +41,18 @@ export default function CreateUserPage({ onClose, setLoading }) {
   const validateForm = () => {
     const messages = {};
 
-    messages.userName = Validator.require(formData.userName);
-    messages.password = Validator.require(formData.password);
+    messages.fullName = Validator.require(formData.fullName, textScreens.fullName);
+    messages.userName = Validator.require(formData.userName, textScreens.userName);
+    messages.password = Validator.require(formData.password, textScreens.password);
     messages.email =
-      Validator.require(formData.email) || Validator.email(formData.email);
-    messages.role = Validator.require(formData.role);
-    messages.status = Validator.require(formData.status);
+      Validator.require(formData.email, textScreens.email) || Validator.email(formData.email, textScreens.email);
+    messages.role = Validator.require(formData.role, textScreens.role);
+    // messages.status = Validator.require(formData.status, textScreens.status);
+    messages.passwordConfirm = Validator.require(formData.passwordConfirm, textScreens.passwordConfirm);
+
+    if (formData.password && formData.passwordConfirm && formData.password !== formData.passwordConfirm) {
+      messages.passwordConfirm = "Mật khẩu xác nhận không khớp";
+    }
 
     const filteredErrors = Object.fromEntries(
       Object.entries(messages).filter(([_, v]) => v)
@@ -54,9 +65,19 @@ export default function CreateUserPage({ onClose, setLoading }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+
+    console.log("data: ", formData);
     try {
+      setLoading(true);
+      await baseApi.post("/users/create", formData);
+      getAllData();
+      closeModal();
     } catch (error) {
-      console.log(error);
+      setIsOpenAlert(true);
+      setAlertType("error");
+      setAlertMsg("Lỗi hệ thống, vui lòng thử lại sau");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,6 +87,13 @@ export default function CreateUserPage({ onClose, setLoading }) {
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+      <SlideAlert
+        open={isOpenAlert}
+        onClose={() => setIsOpenAlert(false)}
+        type={alertType}
+        message={alertMsg}
+        alertId={1}
+      />
       <div className="bg-white p-6 rounded-2xl shadow-lg w-[1000px]">
         <div className="relative">
           <button
@@ -81,6 +109,23 @@ export default function CreateUserPage({ onClose, setLoading }) {
 
         <form onSubmit={handleSubmit}>
           <div className=" w-[90%] m-[auto]">
+            <div className="mb-[10px]">
+              <label className="block text-sm font-medium mb-1">
+                {textScreens.fullName}
+              </label>
+              <input
+                type="text"
+                name="fullName"
+                value={formData.fullName}
+                onChange={handleInputChange}
+                className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200 outline-none"
+                placeholder="Nhập họ và tên"
+              />
+              {errors.fullName && (
+                <p className="text-red-500 text-sm">{errors.fullName}</p>
+              )}
+            </div>
+
             <div className="mb-[10px]">
               <label className="block text-sm font-medium mb-1">
                 {textScreens.userName}
@@ -155,7 +200,7 @@ export default function CreateUserPage({ onClose, setLoading }) {
               </label>
               <select
                 name="role"
-                value={formData.role || ""}
+                value={formData.role}
                 onChange={handleInputChange}
                 className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all"
               >

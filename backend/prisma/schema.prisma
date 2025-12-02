@@ -24,6 +24,8 @@ model User {
   role        Int
   status      Int
   lastLogin   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
   deletedAt   DateTime? @db.DateTime
   customers   Customer[]
 }
@@ -45,9 +47,9 @@ model Customer {
   loans       Loan[]
   telegram    TelegramUser?
 
-  created_at   DateTime @default(now())
-  updated_at   DateTime @updatedAt
-  deleted_at   DateTime? @db.DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  deletedAt   DateTime? @db.DateTime
 }
 
 model CustomerInfo {
@@ -76,9 +78,9 @@ model CustomerInfo {
 
   customer           Customer  @relation(fields: [customerId], references: [id])
 
-  created_at         DateTime @default(now())
-  updated_at         DateTime @updatedAt
-  deleted_at         DateTime? @db.DateTime
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  deletedAt         DateTime? @db.DateTime
 }
 
 model Loan {
@@ -98,9 +100,9 @@ model Loan {
 
   customer         Customer  @relation(fields: [customerId], references: [id])
 
-  created_at       DateTime  @default(now())
-  updated_at       DateTime  @updatedAt
-  deleted_at       DateTime? @db.DateTime
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime? @db.DateTime
 }
 
 model TelegramUser {
@@ -113,7 +115,7 @@ model TelegramUser {
 
   customer         Customer  @relation(fields: [customerId], references: [id])
 
-  created_at       DateTime  @default(now())
-  updated_at       DateTime  @updatedAt
-  deleted_at       DateTime? @db.DateTime
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  deletedAt       DateTime? @db.DateTime
 }

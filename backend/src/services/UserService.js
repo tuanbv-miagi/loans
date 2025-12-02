@@ -1,3 +1,4 @@
+const bcrypt = require("bcrypt");
 const userRepo = require("../repositories/UserRepository");
 
 class UserService {
@@ -23,19 +24,16 @@ class UserService {
     const page = parseInt(atttributes.page) || 1;
     const limit = parseInt(atttributes.limit) || 20;
     const params = {
-      userName: atttributes.userName || null,
-      email: atttributes.email || null,
-      role: atttributes.role || null,
-      status: atttributes.status || null,
+      userName: atttributes.paramSearch?.userName || null,
+      email: atttributes.paramSearch?.email || null,
+      role: atttributes.paramSearch?.role || null,
+      status: atttributes.paramSearch?.status || null,
       page: page,
       limit: limit,
     }
-
     const { rows, count } = await userRepo.findAllWithFilter(params);
 
     return {
-      status: 200,
-      message: "Lấy danh sách người dùng thành công",
       data: rows,
       pagination: {
         total: count,
@@ -44,7 +42,6 @@ class UserService {
         totalPages: Math.ceil(count / limit),
       }
     }
-
   };
 
   /**
@@ -62,22 +59,23 @@ class UserService {
     }
 
     const hashedPassword = await bcrypt.hash(attributes.password, 10);
-
+    delete attributes.passwordConfirm;
     const newUser = await userRepo.create({
       ...attributes,
       password: hashedPassword,
+      spamZalo: 0,
+      avatarUrl: "",
+      role: attributes.role == "user" ? 0 : 1,
+      status: 0,
+      lastLogin: new Date(),
     })
 
     return {
-      status: 201,
-      message: "Thêm mới tài khoản thành công",
-      data: {
-        id: newUser.id,
-        userName: newUser.userName,
-        fullName: newUser.fullName,
-        email: newUser.email,
-        role: newUser.role,
-      }
+      id: newUser.id,
+      userName: newUser.userName,
+      fullName: newUser.fullName,
+      email: newUser.email,
+      role: newUser.role,
     }
   };
 
@@ -96,11 +94,7 @@ class UserService {
       }
     }
     const updatedUser = await userRepo.update(id, attributes);
-    return {
-      status: 200,
-      message: "Cập nhật người dùng thành công",
-      data: updatedUser,
-    }
+    return updatedUser;
   };
 
   /**
@@ -121,12 +115,41 @@ class UserService {
       { deletedAt: new Date() }
     );
 
-    return {
-      status: 200,
-      message: "Xóa người dùng thành công",
-      data: deletedUser,
-    }
+    return deletedUser;
   };
+
+  /**
+   * Lock user
+   * @param {*} id
+   * @returns update user
+   */
+  async lock(id) {
+    const user = await userRepo.findById(id);
+    if (!user) {
+      return null;
+    }
+    const updateUser = await userRepo.update(
+      id,
+      { status: 1 }
+    )
+    return updateUser;
+  }
+
+  /**
+   * Unlock user
+   * @param {*} id
+   * @returns update user
+   */
+  async unLock(id) {
+    const user = await userRepo.findById(id);
+    if (!user) {
+      return null;
+    }
+    const updateUser = await userRepo.update(
+      id,
+      { status: 0 }
+    )
+  }
 }
 
 module.exports = new UserService();
