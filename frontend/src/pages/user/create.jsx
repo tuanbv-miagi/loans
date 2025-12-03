@@ -66,7 +66,6 @@ export default function CreateUserPage({ onClose, setLoading, getAllData }) {
     e.preventDefault();
     if (!validateForm()) return;
 
-    console.log("data: ", formData);
     try {
       setLoading(true);
       await baseApi.post("/users/create", formData);

@@ -1,304 +1,316 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Validator } from "../../utils/Validator";
-import baseApi from "../../api/baseApi";
+import _InputField from "../../components/_InputField";
+import _SelectField from "../../components/_SelectField";
+import _ImageUpload from "../../components/_ImageUpload";
 
-export default function CreateData({ onClose }) {
-  const formInput = {
-    title: "",
-    chaptersCount: "",
-    cover: "",
-    description: "",
-    isAudioBook: "audio",
-    language: "vi",
-    narrator: "",
-    releaseYear: "",
-    totalDuration: ""
+export default function CreatePage() {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    nationalId: "",
+    phone: "",
+    icloud: "",
+    gender: "0",
+    email: "",
+    address: "",
+    amount: "",
+    interestRate: "0.4",
+    idCardIssueDate: "",
+    idCardIssuePlace: "",
+    bankName: "",
+    bankAccountNumber: "",
+    bankAccountName: "",
+    contactPhone1: "",
+    contactPhone2: "",
+    contactPhone3: "",
+    workplaceName: "",
+    workplaceAddress: "",
+  });
+
+  const textScreens = {
+    firstName: "Tên",
+    lastName: "Họ",
+    nationalId: "Số CCCD/CMND",
+    phone: "Số điện thoại",
+    icloud: "Tài khoản iCloud",
+    gender: "Giới tính",
+    email: "Email",
+    address: "Địa chỉ",
+    amount: "Số tiền vay",
+    interestRate: "Lãi suất",
+    idCardIssueDate: "Ngày cấp CCCD",
+    idCardIssuePlace: "Nơi cấp",
+    bankName: "Tên ngân hàng",
+    bankAccountNumber: "Số tài khoản",
+    bankAccountName: "Tên tài khoản",
+    contactPhone1: "SĐT người thân 1",
+    contactPhone2: "SĐT người thân 2",
+    contactPhone3: "SĐT người thân 3",
+    workplaceName: "Tên nơi làm việc",
+    workplaceAddress: "Địa chỉ",
   };
 
-  const labelTextScreen = {
-    title: 'Tiêu đề',
-    chaptersCount: 'Số chương',
-    cover: 'Ảnh bìa',
-    description: 'Mô tả',
-    releaseYear: 'Năm xuất bản',
-    totalDuration: 'Tổng thời lượng',
-    isAudioBook: 'Loại Sách',
-    language: 'Ngôn ngữ',
-    narrator: 'Giọng đọc'
-  }
-
-  const [formData, setFormData] = useState(formInput);
-  const [previewURL, setPreviewURL] = useState("");
+  // upload ảnh
+  const [imagePreview, setImagePreview] = useState([]);
+  const [imageFiles, setImageFiles] = useState([]);
   const [errors, setErrors] = useState({});
 
-  const handlePrivewImage = (e) => {
-    const { files } = e.target;
-    const file = files[0];
-    if (file) {
-      const previewImage = URL.createObjectURL(file);
-      setPreviewURL(previewImage);
-    }
-  }
-
-  const handleChangeForm = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  }
-
-  const closeModal = () => {
-    setPreviewURL("");
-    setFormData(formInput);
-    onClose();
-  }
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
+  };
 
   const validateForm = () => {
-    const messageErrors = {};
+    const messages = {};
 
-    messageErrors.title =
-      Validator.require(formData.title, labelTextScreen.title) ||
-      Validator.max(formData.title, 255, labelTextScreen.title);
-
-    messageErrors.chaptersCount =
-      Validator.require(formData.chaptersCount, labelTextScreen.chaptersCount) ||
-      Validator.isNumber(formData.chaptersCount, labelTextScreen.chaptersCount);
-
-    // messageErrors.cover = Validator.require(formData.cover, labelTextScreen.cover);
-
-    if (formData.narrator) {
-      messageErrors.narrator = Validator.max(formData.narrator, labelTextScreen.narrator);
-    }
-
-    if (formData.releaseYear) {
-      messageErrors.releaseYear = Validator.isNumber(formData.releaseYear, labelTextScreen.releaseYear);
-    }
-
-    if (formData.totalDuration) {
-      messageErrors.totalDuration = Validator.isNumber(formData.totalDuration, labelTextScreen.totalDuration);
-    }
-
-    if (formData.description) {
-      messageErrors.description = Validator.max(formData.description, labelTextScreen.description);
-    }
+    messages.firstName = Validator.require(formData.firstName, textScreens.firstName);
+    messages.lastName = Validator.require(formData.lastName, textScreens.lastName);
+    messages.nationalId = Validator.require(formData.nationalId, textScreens.nationalId);
+    messages.phone = Validator.require(formData.phone, textScreens.phone);
+    messages.icloud = Validator.require(formData.icloud, textScreens.icloud);
+    messages.email = Validator.require(formData.email, textScreens.email) || Validator.email(formData.email, textScreens.email);
+    messages.address = Validator.require(formData.address, textScreens.address);
+    messages.amount = Validator.require(formData.amount, textScreens.amount);
+    messages.interestRate = Validator.require(formData.interestRate, textScreens.interestRate);
+    messages.idCardIssueDate = Validator.require(formData.idCardIssueDate, textScreens.idCardIssueDate);
+    messages.idCardIssueDate = Validator.require(formData.idCardIssuePlace, textScreens.idCardIssuePlace);
+    messages.bankName = Validator.require(formData.bankName, textScreens.bankName);
+    messages.bankAccountNumber = Validator.require(formData.bankAccountNumber, textScreens.bankAccountNumber);
+    messages.bankAccountName = Validator.require(formData.bankAccountName, textScreens.bankAccountName);
+    messages.contactPhone1 = Validator.require(formData.contactPhone1, textScreens.contactPhone1);
+    messages.contactPhone2 = Validator.require(formData.contactPhone2, textScreens.contactPhone2);
+    messages.contactPhone3 = Validator.require(formData.contactPhone3, textScreens.contactPhone3);
+    messages.workplaceName = Validator.require(formData.workplaceName, textScreens.workplaceName);
+    messages.workplaceAddress = Validator.require(formData.workplaceAddress, textScreens.workplaceAddress);
 
     const filteredErrors = Object.fromEntries(
-      Object.entries(messageErrors).filter(([_, v]) => v)
+      Object.entries(messages).filter(([_, v]) => v)
     );
 
     setErrors(filteredErrors);
     return Object.keys(filteredErrors).length === 0;
-  };
+  }
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Form data:", formData);
     if (!validateForm()) return;
 
-    try {
-      await baseApi.post("/audio-books/create", formData);
-      onClose();
-    } catch (error) {
-      console.log("error: ", error);
-    }
+    // const form = new FormData();
+    // Object.keys(formData).forEach((key) => form.append(key, formData[key]));
+    // imageFiles.forEach((file) => form.append("images_url[]", file));
+
+  };
+
+  const redirectList = () => {
+    navigate("/customers");
   };
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-2xl shadow-lg w-[1000px]">
-        <div className="relative">
-          <button
-            onClick={() => closeModal()}
-            className="absolute top-1 right-3 text-gray-500 hover:text-gray-800 text-2xl leading-none"
-          >
-            &times;
-          </button>
-          <h3 className="text-xl font-semibold mb-4 text-center">
-            Thêm mới sách nói
-          </h3>
-        </div>
+    <div className="mx-auto p-6 bg-white rounded-lg shadow-lg">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">
+        Thêm mới khách hàng
+      </h1>
 
-        <form onSubmit={handleSubmit}>
-          <div className="grid grid-cols-2 gap-[4%] w-full">
-            <div>
-              <div className="mb-[10px]">
-                <label className="block text-sm font-medium mb-1">{labelTextScreen.title}</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={formData.title}
-                  onChange={handleChangeForm}
-                  className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200 outline-none"
-                  placeholder="Nhập tiêu đề"
-                />
-                {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
-              </div>
+      <form onSubmit={handleSubmit} className="space-y-10">
+        {/* SECTION: THÔNG TIN CƠ BẢN */}
+        <section>
+          <h2 className="text-xl font-semibold mb-4 border-l-4 border-blue-600 pl-3">
+            Thông tin cơ bản
+          </h2>
 
-              <div className="mb-[10px]">
-                <label className="block text-sm font-medium mb-1">{labelTextScreen.narrator}</label>
-                <input
-                  type="text"
-                  name="narrator"
-                  value={formData.narrator}
-                  onChange={handleChangeForm}
-                  className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200 outline-none"
-                  placeholder="Nhập giọng đọc"
-                />
-                {errors.narrator && <p className="text-red-500 text-sm">{errors.narrator}</p>}
-              </div>
-
-              <div className="mb-[10px]">
-                <label className="block text-sm font-medium mb-1">{labelTextScreen.cover}</label>
-                <input
-                  type="file"
-                  name="cover"
-                  accept="image/*"
-                  onChange={handlePrivewImage}
-                  className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200 outline-none"
-                />
-                {errors.cover && <p className="text-red-500 text-sm">{errors.cover}</p>}
-                <div className="mt-3 flex justify-center items-center h-32 border rounded-lg bg-gray-100 shadow overflow-hidden">
-                  <img
-                    src={previewURL}
-                    alt="Preview"
-                    className="max-h-full max-w-full object-contain rounded-lg"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <div className="mb-[10px]">
-                <label className="block text-sm font-medium mb-1">{labelTextScreen.chaptersCount}</label>
-                <input
-                  type="text"
-                  name="chaptersCount"
-                  value={formData.chaptersCount}
-                  onChange={handleChangeForm}
-                  className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200 outline-none"
-                  placeholder="Nhập số chương"
-                />
-                {errors.chaptersCount && <p className="text-red-500 text-sm">{errors.chaptersCount}</p>}
-              </div>
-
-              <div className="mb-[10px]">
-                <label className="block text-sm font-medium mb-1">{labelTextScreen.releaseYear}</label>
-                <input
-                  type="text"
-                  name="releaseYear"
-                  value={formData.releaseYear}
-                  onChange={handleChangeForm}
-                  className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200 outline-none"
-                  placeholder="Nhập năm xuất bản"
-                />
-                {errors.releaseYear && <p className="text-red-500 text-sm">{errors.releaseYear}</p>}
-              </div>
-
-              <div className="mb-[10px]">
-                <label className="block text-sm font-medium mb-1">{labelTextScreen.totalDuration}</label>
-                <input
-                  type="text"
-                  name="totalDuration"
-                  value={formData.totalDuration}
-                  onChange={handleChangeForm}
-                  className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200 outline-none"
-                  placeholder="Nhập tổng thời lượng"
-                />
-                {errors.totalDuration && <p className="text-red-500 text-sm">{errors.totalDuration}</p>}
-              </div>
-
-              <div className="mb-[10px]">
-                <label className="block text-sm font-medium mb-2">{labelTextScreen.language}</label>
-                <div className="flex items-center space-x-6">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="language"
-                      value="vi"
-                      checked={formData.language === "vi"}
-                      onChange={handleChangeForm}
-                      className="text-blue-600 focus:ring-blue-500"
-                    />
-                    <span>Tiếng việt</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="language"
-                      value="en"
-                      checked={formData.language === "en"}
-                      onChange={handleChangeForm}
-                      className="text-blue-600 focus:ring-blue-500"
-                    />
-                    <span>Tiếng anh</span>
-                  </label>
-                </div>
-              </div>
-
-              <div className="mb-[10px]">
-                <label className="block text-sm font-medium mb-2">{labelTextScreen.isAudioBook}</label>
-                <div className="flex items-center space-x-6">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="isAudioBook"
-                      value="paper"
-                      checked={formData.isAudioBook === "paper"}
-                      onChange={handleChangeForm}
-                      className="text-blue-600 focus:ring-blue-500"
-                    />
-                    <span>Sách giấy</span>
-                  </label>
-
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="isAudioBook"
-                      value="audio"
-                      checked={formData.isAudioBook === "audio"}
-                      onChange={handleChangeForm}
-                      className="text-blue-600 focus:ring-blue-500"
-                    />
-                    <span>Sách nói</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-1">{labelTextScreen.description}</label>
-            <textarea
-              type="text"
-              name="description"
-              rows={8}
-              value={formData.description}
-              onChange={handleChangeForm}
-              className="w-full border rounded-lg px-3 py-2 focus:ring focus:ring-blue-200 outline-none"
-              placeholder="Nhập mô tả"
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <_InputField
+              label="Họ"
+              name="lastName"
+              value={formData.lastName}
+              onChange={handleChange}
+              errorMessage={errors.lastName}
             />
-            {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+            <_InputField
+              label="Tên"
+              name="firstName"
+              value={formData.firstName}
+              onChange={handleChange}
+              errorMessage={errors.firstName}
+            />
+            <_InputField
+              label="Số CCCD/CMND"
+              name="nationalId"
+              value={formData.nationalId}
+              onChange={handleChange}
+              errorMessage={errors.nationalId}
+            />
+            <_InputField
+              label="Số điện thoại"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              maxLength={11}
+              errorMessage={errors.phone}
+            />
+            <_InputField
+              label="Tài khoản iCloud"
+              name="icloud"
+              value={formData.icloud}
+              onChange={handleChange}
+              errorMessage={errors.icloud}
+            />
+            <_SelectField
+              label="Giới tính"
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              options={[
+                { value: "0", label: "Nam" },
+                { value: "1", label: "Nữ" },
+              ]}
+            />
+            <_InputField
+              label="Email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              type="email"
+              errorMessage={errors.email}
+            />
+            <_InputField
+              label="Địa chỉ"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              errorMessage={errors.address}
+            />
+            <_InputField
+              label="Số tiền vay"
+              name="amount"
+              value={formData.amount}
+              onChange={handleChange}
+              type="number"
+              errorMessage={errors.amount}
+            />
+            <_InputField
+              label="Lãi suất"
+              name="interest_rate"
+              value={formData.interestRate}
+              readOnly
+              errorMessage={errors.interestRate}
+            />
+            <_InputField
+              label="Ngày cấp CCCD"
+              name="idCardIssueDate"
+              value={formData.idCardIssueDate}
+              onChange={handleChange}
+              type="date"
+              errorMessage={errors.idCardIssueDate}
+            />
+            <_InputField
+              label="Nơi cấp"
+              name="idCardIssuePlace"
+              value={formData.idCardIssuePlace}
+              onChange={handleChange}
+              errorMessage={errors.idCardIssuePlace}
+            />
           </div>
+        </section>
 
-          <div className="flex justify-end space-x-3 pt-4">
-            <button
-              type="button"
-              onClick={() => closeModal()}
-              className="px-4 py-2 bg-gray-300 rounded-lg hover:bg-gray-400"
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-            >
-              Lưu
-            </button>
+        {/* SECTION: UPLOAD ẢNH */}
+        <section>
+          <_ImageUpload
+            imageFiles={imageFiles}
+            setImageFiles={setImageFiles}
+            imagePreview={imagePreview}
+            setImagePreview={setImagePreview}
+          />
+        </section>
+
+        {/* SECTION: THÔNG TIN KHÁC */}
+        <section>
+          <h2 className="text-xl font-semibold mb-4 border-l-4 border-purple-600 pl-3">
+            Thông tin khác
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <_InputField
+              label="Tên ngân hàng"
+              name="bankName"
+              value={formData.bankName}
+              onChange={handleChange}
+              errorMessage={errors.bankName}
+
+            />
+            <_InputField
+              label="Số tài khoản"
+              name="bankAccountNumber"
+              value={formData.bankAccountNumber}
+              onChange={handleChange}
+              errorMessage={errors.bankAccountNumber}
+            />
+            <_InputField
+              label="Tên tài khoản"
+              name="bankAccountName"
+              value={formData.bankAccountName}
+              onChange={handleChange}
+              errorMessage={errors.bankAccountName}
+            />
+            <_InputField
+              label="SĐT người thân 1"
+              name="contactPhone1"
+              value={formData.contactPhone1}
+              onChange={handleChange}
+              errorMessage={errors.contactPhone1}
+            />
+            <_InputField
+              label="SĐT người thân 2"
+              name="contactPhone2"
+              value={formData.contactPhone2}
+              onChange={handleChange}
+              errorMessage={errors.contactPhone2}
+            />
+            <_InputField
+              label="SĐT người thân 3"
+              name="contactPhone3"
+              value={formData.contactPhone3}
+              onChange={handleChange}
+              errorMessage={errors.contactPhone3}
+            />
+            <_InputField
+              label="Tên nơi làm việc"
+              name="workplaceName"
+              value={formData.workplaceName}
+              onChange={handleChange}
+              errorMessage={errors.workplaceName}
+            />
+            <_InputField
+              label="Địa chỉ"
+              name="workplaceAddress"
+              value={formData.workplaceAddress}
+              onChange={handleChange}
+              errorMessage={errors.workplaceAddress}
+            />
           </div>
-        </form>
-      </div>
+        </section>
+
+        {/* BUTTONS */}
+        <div className="flex justify-end space-x-4 pt-6">
+          <button
+            type="button"
+            onClick={redirectList}
+            className="px-5 py-2 bg-gray-400 text-white rounded-lg hover:bg-gray-500"
+          >
+            Hủy
+          </button>
+          <button
+            type="submit"
+            className="px-5 py-2 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700"
+          >
+            Tạo mới khách hàng
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

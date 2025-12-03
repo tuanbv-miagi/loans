@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { Search, Edit, Trash2, Eye } from "lucide-react";
+import { Search, Edit, Trash2, Eye, Eraser } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 const loans = [
   {
@@ -32,11 +34,45 @@ const loans = [
 ];
 
 export default function LoanPage() {
+  const form = {
+    customerName: "",
+    startDate: "",
+    endDate: "",
+    status: "",
+    amount: "",
+  };
+  const navigate = useNavigate();
   const [search, setSearch] = useState("");
+  const [isOpenModalDelete, setIsOpenModalDelete] = useState(false);
+  const [formSearch, setFormSearch] = useState(form);
 
   const filtered = loans.filter((l) =>
     l.customer.toLowerCase().includes(search.toLowerCase())
   );
+
+  const redirectDetail = (id) => {
+    navigate(`/loans/${id}`);
+  };
+
+  const redirectCreate = () => {
+    navigate("/loans/create");
+  };
+
+  const handleChangeFormSearch = (e) => {
+    const { name, value } = e.target;
+    setFormSearch((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleDelete = () => {
+    // TODO handle logic
+  };
+
+  const resetForm = () => {
+    setFormSearch(form);
+  };
 
   return (
     <div className="space-y-6">
@@ -47,22 +83,118 @@ export default function LoanPage() {
           <button className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition w-[11rem] mr-[10px]">
             Xuất excel
           </button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition w-[11rem]">
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition w-[11rem]"
+            onClick={() => redirectCreate()}
+          >
             + Thêm khoản vay
           </button>
         </div>
       </div>
 
       {/* Search */}
-      <div className="flex items-center bg-white p-4 rounded-lg shadow">
-        <Search size={18} className="text-gray-400 mr-2" />
-        <input
-          type="text"
-          placeholder="Tìm theo tên khách hàng..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="flex-1 outline-none"
-        />
+      <div className="bg-white p-4 rounded-lg shadow space-y-3">
+        <div className="text-[20px] font-bold">Thông tin tìm kiếm</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+          {/* Nhập tên sách */}
+          <div className="flex flex-col space-y-1">
+            <label className="font-medium text-gray-700 text-sm">
+              Tên khách hàng
+            </label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+              <input
+                type="text"
+                name="customerName"
+                placeholder="Nhập tên khách hàng"
+                value={formSearch.customerName || ""}
+                onChange={handleChangeFormSearch}
+                className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          {/* Nhập số tiền */}
+          <div className="flex flex-col space-y-1">
+            <label className="font-medium text-gray-700 text-sm">Số tiền</label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+              <input
+                type="text"
+                name="amount"
+                placeholder="Nhập số tiền"
+                value={formSearch.amount || ""}
+                onChange={handleChangeFormSearch}
+                className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          {/* Chọn từ ngày */}
+          <div className="flex flex-col space-y-1">
+            <label className="font-medium text-gray-700 text-sm">Từ ngày</label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+              <input
+                type="date"
+                name="fromDate"
+                value={formSearch.fromDate || ""}
+                onChange={handleChangeFormSearch}
+                className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          {/* Chọn đến ngày */}
+          <div className="flex flex-col space-y-1">
+            <label className="font-medium text-gray-700 text-sm">
+              Đến ngày
+            </label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+              <input
+                type="date"
+                name="toDate"
+                value={formSearch.toDate || ""}
+                onChange={handleChangeFormSearch}
+                className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-400"
+              />
+            </div>
+          </div>
+          {/* Chọn trạng thái */}
+          <div className="flex flex-col space-y-1">
+            <label className="font-medium text-gray-700 text-sm">
+              Trạng thái
+            </label>
+            <select
+              name="status"
+              value={formSearch.status ?? ""}
+              onChange={handleChangeFormSearch}
+              placeholder="Chọn trạng thái"
+              className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all"
+            >
+              <option value=""></option>
+              <option value="true">Hoạt động</option>
+              <option value="false">Khóa</option>
+            </select>
+          </div>
+        </div>
+
+        {/* Nút tìm kiếm */}
+        <div className="flex justify-end">
+          <button
+            onClick={() => resetForm()}
+            className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+          >
+            <div className="flex align-anchor">
+              <Eraser size={20} />
+              <span className="ml-[5px]">Làm mới</span>
+            </div>
+          </button>
+
+          <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ml-3">
+            <div className="flex align-anchor">
+              <Search size={20} />
+              <span className="ml-[5px]">Tìm kiếm</span>
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* Table */}
@@ -107,13 +239,19 @@ export default function LoanPage() {
                   )}
                 </td>
                 <td className="p-3 flex justify-center gap-3">
-                  <button className="text-blue-600 hover:text-blue-800">
+                  <button
+                    className="text-blue-600 hover:text-blue-800"
+                    onClick={() => redirectDetail(1)}
+                  >
                     <Eye size={18} />
                   </button>
                   <button className="text-yellow-600 hover:text-yellow-800">
                     <Edit size={18} />
                   </button>
-                  <button className="text-red-600 hover:text-red-800">
+                  <button
+                    className="text-red-600 hover:text-red-800"
+                    onClick={() => setIsOpenModalDelete(true)}
+                  >
                     <Trash2 size={18} />
                   </button>
                 </td>
@@ -143,6 +281,16 @@ export default function LoanPage() {
           Sau
         </button>
       </div>
+
+      <ConfirmDialog
+        open={isOpenModalDelete}
+        title="Xác nhận xoá thông tin khoản vay?"
+        message="Bạn có chắc muốn xoá mục này? Hành động này không thể hoàn tác."
+        confirmText="Xóa"
+        cancelText="Hủy"
+        onConfirm={handleDelete}
+        onCancel={() => setIsOpenModalDelete(false)}
+      />
     </div>
   );
 }

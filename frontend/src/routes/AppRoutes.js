@@ -6,7 +6,11 @@ import DashboardLayout from "../layouts/Dashboard";
 import Login from "../pages/login";
 import Dashboard from "../pages/dashboard";
 import CustomerPage from "../pages/customer/index";
+import CreateCustomerPage from "../pages/customer/create";
+import CustomerShowPage from "../pages/customer/show";
 import LoanPage from "../pages/loan/index";
+import LoanCreatePage from "../pages/loan/create";
+import LoanShowPage from "../pages/loan/show";
 import SettingPage from "../pages/setting/index";
 import UserPage from "../pages/user/index";
 
@@ -49,10 +53,42 @@ export default function AppRoutes() {
         }
       />
       <Route
+        path="/customers/create"
+        element={
+          <DashboardLayout>
+            <CreateCustomerPage />
+          </DashboardLayout>
+        }
+      />
+      <Route
+        path="/customers/:id"
+        element={
+          <DashboardLayout>
+            <CustomerShowPage />
+          </DashboardLayout>
+        }
+      />
+      <Route
         path="/loans"
         element={
           <DashboardLayout>
             <LoanPage />
+          </DashboardLayout>
+        }
+      />
+      <Route
+        path="/loans/create"
+        element={
+          <DashboardLayout>
+            <LoanCreatePage />
+          </DashboardLayout>
+        }
+      />
+      <Route
+        path="/loans/:id"
+        element={
+          <DashboardLayout>
+            <LoanShowPage />
           </DashboardLayout>
         }
       />

@@ -375,14 +375,6 @@ export default function UserPage() {
                     <button className="text-yellow-600 hover:text-yellow-800">
                       <Edit size={18} />
                     </button>
-                    <button className="text-red-600 hover:text-red-800">
-                      <Trash2
-                        size={18}
-                        onClick={() => (
-                          setIsOpenModalDeleteConfirm(true), setUserId(user.id)
-                        )}
-                      />
-                    </button>
                     <button className="text-gray-600 hover:text-gray-800">
                       {user.status === 0 ? (
                         <Lock
@@ -400,6 +392,14 @@ export default function UserPage() {
                           )}
                         />
                       )}
+                    </button>
+                    <button className="text-red-600 hover:text-red-800">
+                      <Trash2
+                        size={18}
+                        onClick={() => (
+                          setIsOpenModalDeleteConfirm(true), setUserId(user.id)
+                        )}
+                      />
                     </button>
                   </td>
                 </tr>
