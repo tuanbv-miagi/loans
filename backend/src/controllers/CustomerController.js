@@ -23,26 +23,40 @@ const CustomerController = {
   async create(req, res) {
     try {
       const data = req.body;
-
-      const attributes = {
-        title: data.title,
-        chaptersCount: data.chaptersCount,
-        cover: data.cover,
-        description: data.description,
-        isAudioBook: data.isAudioBook === "audio",
-        language: data.language,
-        narrator: data.narrator,
-        releaseYear: data.releaseYear,
-        totalDuration: data.totalDuration,
-      };
-
-      const response = await customerService.create(attributes);
-      res.status(200).json({
+      const result = await customerService.create({
+        ...data,
+        accountId: req.user?.id
+      });
+      res.status(201).json({
         message: "Thêm mới thành công",
-        data: response,
+        data: result,
       });
     } catch (error) {
-      res.status(500).json({ message: "Lỗi server", error: error.message });
+      res.status(500).json({
+        message: "Lỗi server",
+        error: error.message,
+      });
+    }
+  },
+
+  /**
+   * Get paginated customers with filter
+   * @param {*} req
+   * @param {*} res
+   * @returns array of customers with pagination
+   */
+  async paginate(req, res) {
+    try {
+      const response = await customerService.paginate(req.body);
+      return res.status(200).json({
+        status: 200,
+        message: "Lấy danh sách khách hàng thành công",
+        data: response.data,
+        pagination: response.pagination
+      });
+    } catch (error) {
+      console.error("Get all customers error: ", error);
+      return res.status(500).json({ message: "Lỗi server"});
     }
   },
 };

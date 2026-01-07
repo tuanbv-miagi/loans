@@ -1,64 +1,63 @@
 import React, { useEffect, useState } from "react";
-import { Search, Edit, Trash2, Eye, RotateCcw, Eraser } from "lucide-react";
+import { Search, Edit, Trash2, Eye, RotateCcw, Eraser, Loader2 } from "lucide-react";
 import baseApi from "../../api/baseApi";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/ConfirmDialog";
-
-const customers = [
-  {
-    id: 1,
-    name: "Nguyễn Văn A",
-    phone: "0901234567",
-    debt: 50000000,
-    status: "Đang vay",
-  },
-  {
-    id: 2,
-    name: "Trần Thị B",
-    phone: "0912345678",
-    debt: 0,
-    status: "Đã tất toán",
-  },
-  {
-    id: 3,
-    name: "Lê Văn C",
-    phone: "0934567890",
-    debt: 20000000,
-    status: "Quá hạn",
-  },
-];
+import Paginate from "../../components/paginate";
+import SlideAlert from "../../components/SlideAlert";
 
 export default function CustomerPage() {
   const form = {
     name: '',
     email: '',
-    posittion: '',
-    status: ''
+    phone: '',
+    nationalId: '',
+    isSpamZalo: '',
+    isSpamIcloud: '',
   };
   const PAGE_DEFAULT = 1;
   const LIMIT = 10;
   const navigate = useNavigate();
 
-  const [search, setSearch] = useState("");
-  const [isOpenModal, setIsOpenModal] = useState(false);
+  // const [search, setSearch] = useState("");
+  // const [isOpenModal, setIsOpenModal] = useState(false);
   const [isOpenModalDelete, setIsOpenModalDelete] = useState(false);
-  // const [customers, setCustomers] = useState([]);
+  const [customers, setCustomers] = useState([]);
   const [formSearch, setFormSearch] = useState(form);
   const [page, setPage] = useState(PAGE_DEFAULT);
   const [limit, setLimit] = useState(LIMIT);
   const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [isOpenAlert, setIsOpenAlert] = useState(false);
+  const [alertType, setAlertType] = useState("success");
+  const [alertMsg, setAlertMsg] = useState("");
+  const [alertId, setAlertId] = useState("");
 
-  const filtered = customers.filter((c) =>
-    c.name.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const getAllData = async () => {
+  const getAllData = async (search = formSearch) => {
+    const params = {
+      page: page,
+      limit: limit,
+      paramSearch: search,
+    };
     try {
-      const response = await baseApi.get("/customers");
-      console.log("response: ", response);
-      // setCustomers(response.data);
+      setLoading(true);
+      const response = await baseApi.post("/customers/paginate", params);
+      response.data = response?.data.map((item, index) => ({
+        ...item,
+        no: (page - 1) * limit + index + 1,
+      }));
+      setCustomers(response.data);
+      setTotal(response.pagination.total);
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu:", error);
+      setIsOpenAlert(true);
+      setAlertId("user_get_list");
+      setAlertMsg(
+        error?.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại sau"
+      );
+      setAlertType("error");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -92,6 +91,13 @@ export default function CustomerPage() {
 
   return (
     <div className="space-y-6">
+      <SlideAlert
+        open={isOpenAlert}
+        onClose={() => setIsOpenAlert(false)}
+        type={alertType}
+        message={alertMsg}
+        alertId={alertId}
+      />
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Quản lý khách hàng</h2>
@@ -111,7 +117,7 @@ export default function CustomerPage() {
       <div className="bg-white p-4 rounded-lg shadow space-y-3">
         <div className="text-[20px] font-bold">Thông tin tìm kiếm</div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {/* Nhập tên sách */}
+          {/* Nhập tên khách hàng */}
           <div className="flex flex-col space-y-1">
             <label className="font-medium text-gray-700 text-sm">
               Tên khách hàng
@@ -128,7 +134,7 @@ export default function CustomerPage() {
             </div>
           </div>
 
-          {/* Nhập Tác giả */}
+          {/* Nhập email */}
           <div className="flex flex-col space-y-1">
             <label className="font-medium text-gray-700 text-sm">
               Email
@@ -145,21 +151,73 @@ export default function CustomerPage() {
             </div>
           </div>
 
-          {/* Chọn loại sách */}
+          {/* Nhập số điện thoại */}
           <div className="flex flex-col space-y-1">
             <label className="font-medium text-gray-700 text-sm">
-              Loại sách
+              Số điện thoại
+            </label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+              <input
+                type="text"
+                name="phone"
+                placeholder="Nhập số điện thoại"
+                value={formSearch.phone || ""}
+                onChange={handleChangeFormSearch}
+                className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          {/* Nhập số căn cước */}
+          <div className="flex flex-col space-y-1">
+            <label className="font-medium text-gray-700 text-sm">
+              Số căn cước
+            </label>
+            <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all">
+              <input
+                type="text"
+                name="nationalId"
+                placeholder="Nhập số căn cước"
+                value={formSearch.nationalId || ""}
+                onChange={handleChangeFormSearch}
+                className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-400"
+              />
+            </div>
+          </div>
+
+          {/* Spam zalo */}
+          <div className="flex flex-col space-y-1">
+            <label className="font-medium text-gray-700 text-sm">
+              Spam zalo
             </label>
             <select
-              name="status"
-              value={formSearch.status ?? ""}
+              name="isSpamZalo"
+              value={formSearch.isSpamZalo ?? ""}
               onChange={handleChangeFormSearch}
-              placeholder="Chọn loại sách"
+              placeholder="Chọn trạng thái"
               className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all"
             >
               <option value=""></option>
-              <option value="true">Hoạt động</option>
-              <option value="false">Khóa</option>
+              <option value="0">Không spam</option>
+              <option value="1">Spam</option>
+            </select>
+          </div>
+
+          {/* Spam icloud */}
+          <div className="flex flex-col space-y-1">
+            <label className="font-medium text-gray-700 text-sm">
+              Spam icloud
+            </label>
+            <select
+              name="isSpamIcloud"
+              value={formSearch.isSpamIcloud ?? ""}
+              onChange={handleChangeFormSearch}
+              placeholder="Chọn trạng thái"
+              className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all"
+            >
+              <option value=""></option>
+              <option value="0">Không spam</option>
+              <option value="1">Spam</option>
             </select>
           </div>
         </div>
@@ -198,77 +256,93 @@ export default function CustomerPage() {
             <tr className="bg-gray-100 text-center">
               <th className="p-3 ">STT</th>
               <th className="p-3">Tên khách hàng</th>
+              <th className="p-3">CCCD</th>
               <th className="p-3">SĐT</th>
-              <th className="p-3">Dư nợ</th>
-              <th className="p-3">Trạng thái</th>
+              <th className="p-3">Email</th>
+              <th className="p-3">Spam zalo</th>
+              <th className="p-3">Spam icloud</th>
               <th className="p-3 text-center">Hành động</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((c, index) => (
-              <tr key={c.id} className="border-t hover:bg-gray-50 text-center">
-                <td className="p-3 font-medium">{index + 1}</td>
-                <td className="p-3 font-medium">{c.name}</td>
-                <td className="p-3">{c.phone}</td>
-                <td className="p-3">₫ {c.debt.toLocaleString()}</td>
-                <td className="p-3">
-                  {c.status === "Đang vay" && (
-                    <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-600">
-                      {c.status}
-                    </span>
-                  )}
-                  {c.status === "Đã tất toán" && (
-                    <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-600">
-                      {c.status}
-                    </span>
-                  )}
-                  {c.status === "Quá hạn" && (
-                    <span className="px-2 py-1 text-xs rounded bg-red-100 text-red-600">
-                      {c.status}
-                    </span>
-                  )}
-                </td>
-                <td className="p-3 flex justify-center gap-3">
-                  <button className="text-blue-600 hover:text-blue-800"
-                    onClick={() => redirectDetail(1)}
-                  >
-                    <Eye size={18} />
-                  </button>
-                  <button className="text-yellow-600 hover:text-yellow-800">
-                    <Edit size={18} />
-                  </button>
-                  <button className="text-red-600 hover:text-red-800"
-                    onClick={() => setIsOpenModalDelete(true)}
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {filtered.length === 0 && (
+            {loading ? (
               <tr>
-                <td colSpan="5" className="p-4 text-center text-gray-500">
-                  Không tìm thấy khách hàng
+                <td colSpan="10" className="text-center py-16">
+                  <div className="flex flex-col justify-center items-center text-gray-500">
+                    <Loader2 className="animate-spin w-8 h-8 mb-3 text-blue-500" />
+                    <span>Đang tải dữ liệu...</span>
+                  </div>
                 </td>
               </tr>
+            ) : customers.length === 0 ? (
+              <tr>
+                <td colSpan="10" className="text-center text-gray-500 py-8">
+                  Không có dữ liệu.
+                </td>
+              </tr>
+            ) : (
+              customers.map((customer, index) => (
+                <tr key={customer.id} className="border-t hover:bg-gray-50 text-center">
+                  <td className="p-3 font-medium">{index + 1}</td>
+                  <td className="p-3 font-medium">{customer.lastName + " " + customer.firstName}</td>
+                  <td className="p-3">{customer.nationalId}</td>
+                  <td className="p-3">{customer.phone}</td>
+                  <td className="p-3">{customer.email}</td>
+                  <td className="p-3">
+                    {customer.isSpamZalo === 0 && (
+                      <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-600">
+                        Không spam
+                      </span>
+                    )}
+                    {customer.isSpamZalo === 1 && (
+                      <span className="px-2 py-1 text-xs rounded bg-red-100 text-red-600">
+                        Spam
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-3">
+                    {customer.isSpamIcloud === 0 && (
+                      <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-600">
+                        Không spam
+                      </span>
+                    )}
+                    {customer.isSpamIcloud === 1 && (
+                      <span className="px-2 py-1 text-xs rounded bg-red-100 text-red-600">
+                        Spam
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-3 flex justify-center gap-3">
+                    <button className="text-blue-600 hover:text-blue-800"
+                      onClick={() => redirectDetail(1)}
+                    >
+                      <Eye size={18} />
+                    </button>
+                    <button className="text-yellow-600 hover:text-yellow-800">
+                      <Edit size={18} />
+                    </button>
+                    <button className="text-red-600 hover:text-red-800"
+                      onClick={() => setIsOpenModalDelete(true)}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination (demo tĩnh) */}
-      <div className="flex justify-end gap-2">
-        <button className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">
-          Trước
-        </button>
-        <button className="px-3 py-1 bg-blue-600 text-white rounded">1</button>
-        <button className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">
-          2
-        </button>
-        <button className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">
-          Sau
-        </button>
-      </div>
+      {/* Pagination */}
+      <Paginate
+        setPage={setPage}
+        page={page}
+        total={total}
+        setLimit={setLimit}
+        limit={limit}
+        getList={getAllData}
+      />
 
       <ConfirmDialog
         open={isOpenModalDelete}

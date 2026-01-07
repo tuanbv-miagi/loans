@@ -4,6 +4,7 @@ import { Validator } from "../../utils/Validator";
 import _InputField from "../../components/_InputField";
 import _SelectField from "../../components/_SelectField";
 import _ImageUpload from "../../components/_ImageUpload";
+import baseApi from "../../api/baseApi";
 
 export default function CreatePage() {
   const navigate = useNavigate();
@@ -57,6 +58,10 @@ export default function CreatePage() {
   const [imagePreview, setImagePreview] = useState([]);
   const [imageFiles, setImageFiles] = useState([]);
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [isOpenAlert, setIsOpenAlert] = useState(false);
+  const [alertType, setAlertType] = useState("success");
+  const [alertMsg, setAlertMsg] = useState("");
 
   const handleChange = (e) => {
     setFormData({
@@ -96,9 +101,21 @@ export default function CreatePage() {
     return Object.keys(filteredErrors).length === 0;
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
+
+    try {
+      setLoading(true);
+      await baseApi.post("/customers/create", formData);
+      redirectList();
+    } catch (error) {
+      setIsOpenAlert(true);
+      setAlertType("error");
+      setAlertMsg("Lỗi hệ thống, vui lòng thử lại sau");
+    } finally {
+      setLoading(false);
+    }
 
     // const form = new FormData();
     // Object.keys(formData).forEach((key) => form.append(key, formData[key]));
