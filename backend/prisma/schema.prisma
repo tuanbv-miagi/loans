@@ -96,7 +96,7 @@ model Loan {
   receivedAmount   Decimal   @db.Decimal(15, 2)
   paidAmount       Decimal   @db.Decimal(15, 2)
   sevenDayOfAmount Decimal   @db.Decimal(15, 2)
-  status           Int
+  status           Int // 0 - Đang thanh toán, 1 - Đã trả, 2 - Trễ hạn
 
   customer         Customer  @relation(fields: [customerId], references: [id])
 

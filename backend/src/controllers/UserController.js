@@ -11,10 +11,10 @@ const userController = {
     try {
       const data = await userService.getAllUsers();
 
-      return res.status(data.status).json({data});
+      return res.status(data.status).json({ data });
     } catch (error) {
       console.error("Get all users error: ", error);
-      return res.status(500).json({ message: "Lỗi server"});
+      return res.status(500).json({ message: "Lỗi server" });
     }
   },
 
@@ -32,11 +32,11 @@ const userController = {
         status: 200,
         message: "Lấy danh sách người dùng thành công",
         data: response.data,
-        pagination: response.pagination
+        pagination: response.pagination,
       });
     } catch (error) {
       console.error("Get all users error: ", error);
-      return res.status(500).json({ message: "Lỗi server"});
+      return res.status(500).json({ message: "Lỗi server" });
     }
   },
 
@@ -53,11 +53,11 @@ const userController = {
       return res.status(200).json({
         status: 201,
         message: "Thêm mới tài khoản thành công",
-        data: data
+        data: data,
       });
     } catch (error) {
       console.error("Create user error: ", error);
-      return res.status(500).json({ message: "Lỗi server"});
+      return res.status(500).json({ message: "Lỗi server" });
     }
   },
 
@@ -74,11 +74,11 @@ const userController = {
       return res.status(200).json({
         status: 200,
         message: "Cập nhật người dùng thành công",
-        data: data
+        data: data,
       });
     } catch (error) {
       console.error("Update user error: ", error);
-      return res.status(500).json({ message: "Lỗi server"});
+      return res.status(500).json({ message: "Lỗi server" });
     }
   },
 
@@ -99,7 +99,7 @@ const userController = {
       });
     } catch (error) {
       console.error("Delete user error: ", error);
-      return res.status(500).json({ message: "Lỗi server"});
+      return res.status(500).json({ message: "Lỗi server" });
     }
   },
 
@@ -120,7 +120,7 @@ const userController = {
       });
     } catch (error) {
       console.error("Lock user error: ", error);
-      return res.status(500).json({ message: "Lỗi server"});
+      return res.status(500).json({ message: "Lỗi server" });
     }
   },
 
@@ -141,9 +141,9 @@ const userController = {
       });
     } catch (error) {
       console.error("Unlock user error: ", error);
-      return res.status(500).json({ message: "Lỗi server"});
+      return res.status(500).json({ message: "Lỗi server" });
     }
-  }
+  },
 };
 
 module.exports = userController;

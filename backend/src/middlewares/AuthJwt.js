@@ -16,7 +16,7 @@ const authJwt = {
     } catch (error) {
       return res.status(403).json({ message: "Invalid or expired token" });
     }
-  }
+  },
 };
 
 module.exports = authJwt;

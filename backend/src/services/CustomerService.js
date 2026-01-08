@@ -4,6 +4,14 @@ const customerInfoRepo = require("../repositories/CustomerInfoRepository");
 
 class CustomerService {
   /**
+   * Get all customers for the current account
+   * @returns array of customers
+   */
+  async getAll() {
+    return customerRepo.getDataByAccountId();
+  }
+
+  /**
    * Create new customer
    * @param {*} attributes
    * @returns new customer
@@ -50,9 +58,71 @@ class CustomerService {
     });
   }
 
-  async update(id, attributes) {};
+  /**
+   * Update customer
+   * @param {*} id
+   * @param {*} attributes
+   * @returns updated customer
+   */
+  async updateData(id, attributes) {
+    return prisma.$transaction(async (tx) => {
+      const updatedCustomer = await customerRepo.update(
+        id,
+        {
+          firstName: attributes.firstName,
+          lastName: attributes.lastName,
+          email: attributes.email,
+          phone: attributes.phone,
+          nationalId: attributes.nationalId,
+          address: attributes.address,
+          isSpamZalo: attributes.isSpamZalo ?? 0,
+          isSpamIcloud: attributes.isSpamIcloud ?? 0,
+        },
+        tx
+      );
 
-  async delete(id) {};
+      const customerInfoData = {
+        icloud: attributes?.customerInfo?.icloud,
+        idCardFront: attributes?.customerInfo?.idCardFront ?? "",
+        idCardBack: attributes?.customerInfo?.idCardBack ?? "",
+        idCardIssueDate: attributes?.customerInfo?.idCardIssueDate
+          ? new Date(attributes.customerInfo.idCardIssueDate)
+          : undefined,
+        idCardIssuePlace: attributes?.customerInfo?.idCardIssuePlace,
+        contactPhone1: attributes?.customerInfo?.contactPhone1,
+        contactPhone2: attributes?.customerInfo?.contactPhone2,
+        contactPhone3: attributes?.customerInfo?.contactPhone3,
+        bankName: attributes?.customerInfo?.bankName,
+        bankAccountNumber: attributes?.customerInfo?.bankAccountNumber,
+        bankAccountName: attributes?.customerInfo?.bankAccountName,
+        workplaceName: attributes?.customerInfo?.workplaceName,
+        workplaceAddress: attributes?.customerInfo?.workplaceAddress,
+        urlImages: attributes?.customerInfo?.urlImages ?? "",
+      };
+
+      await customerInfoRepo.upsert(id, customerInfoData, tx);
+
+      return updatedCustomer;
+    });
+  }
+
+  /**
+   * Get customer by ID with relations
+   * @param {*} id
+   * @returns customer with relations
+   */
+  async show(id) {
+    const customer = await customerRepo.findByIdWithRelations(id);
+    if (!customer) {
+      throw new Error("CUSTOMER_NOT_FOUND");
+    }
+
+    return customer;
+  }
+
+  async update(id, attributes) {}
+
+  async delete(id) {}
 
   /**
    * Paginate customers with filter
@@ -71,7 +141,7 @@ class CustomerService {
       isSpamIcloud: atttributes.paramSearch?.isSpamIcloud || null,
       page: page,
       limit: limit,
-    }
+    };
 
     const { rows, count } = await customerRepo.findAllWithFilter(params);
 
@@ -82,9 +152,9 @@ class CustomerService {
         page: page,
         limit: limit,
         totalPages: Math.ceil(count / limit),
-      }
-    }
-  };
+      },
+    };
+  }
 }
 
 module.exports = new CustomerService();

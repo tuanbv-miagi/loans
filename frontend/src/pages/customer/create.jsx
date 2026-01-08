@@ -73,25 +73,69 @@ export default function CreatePage() {
   const validateForm = () => {
     const messages = {};
 
-    messages.firstName = Validator.require(formData.firstName, textScreens.firstName);
-    messages.lastName = Validator.require(formData.lastName, textScreens.lastName);
-    messages.nationalId = Validator.require(formData.nationalId, textScreens.nationalId);
+    messages.firstName = Validator.require(
+      formData.firstName,
+      textScreens.firstName
+    );
+    messages.lastName = Validator.require(
+      formData.lastName,
+      textScreens.lastName
+    );
+    messages.nationalId = Validator.require(
+      formData.nationalId,
+      textScreens.nationalId
+    );
     messages.phone = Validator.require(formData.phone, textScreens.phone);
     messages.icloud = Validator.require(formData.icloud, textScreens.icloud);
-    messages.email = Validator.require(formData.email, textScreens.email) || Validator.email(formData.email, textScreens.email);
+    messages.email =
+      Validator.require(formData.email, textScreens.email) ||
+      Validator.email(formData.email, textScreens.email);
     messages.address = Validator.require(formData.address, textScreens.address);
     messages.amount = Validator.require(formData.amount, textScreens.amount);
-    messages.interestRate = Validator.require(formData.interestRate, textScreens.interestRate);
-    messages.idCardIssueDate = Validator.require(formData.idCardIssueDate, textScreens.idCardIssueDate);
-    messages.idCardIssueDate = Validator.require(formData.idCardIssuePlace, textScreens.idCardIssuePlace);
-    messages.bankName = Validator.require(formData.bankName, textScreens.bankName);
-    messages.bankAccountNumber = Validator.require(formData.bankAccountNumber, textScreens.bankAccountNumber);
-    messages.bankAccountName = Validator.require(formData.bankAccountName, textScreens.bankAccountName);
-    messages.contactPhone1 = Validator.require(formData.contactPhone1, textScreens.contactPhone1);
-    messages.contactPhone2 = Validator.require(formData.contactPhone2, textScreens.contactPhone2);
-    messages.contactPhone3 = Validator.require(formData.contactPhone3, textScreens.contactPhone3);
-    messages.workplaceName = Validator.require(formData.workplaceName, textScreens.workplaceName);
-    messages.workplaceAddress = Validator.require(formData.workplaceAddress, textScreens.workplaceAddress);
+    messages.interestRate = Validator.require(
+      formData.interestRate,
+      textScreens.interestRate
+    );
+    messages.idCardIssueDate = Validator.require(
+      formData.idCardIssueDate,
+      textScreens.idCardIssueDate
+    );
+    messages.idCardIssueDate = Validator.require(
+      formData.idCardIssuePlace,
+      textScreens.idCardIssuePlace
+    );
+    messages.bankName = Validator.require(
+      formData.bankName,
+      textScreens.bankName
+    );
+    messages.bankAccountNumber = Validator.require(
+      formData.bankAccountNumber,
+      textScreens.bankAccountNumber
+    );
+    messages.bankAccountName = Validator.require(
+      formData.bankAccountName,
+      textScreens.bankAccountName
+    );
+    messages.contactPhone1 = Validator.require(
+      formData.contactPhone1,
+      textScreens.contactPhone1
+    );
+    messages.contactPhone2 = Validator.require(
+      formData.contactPhone2,
+      textScreens.contactPhone2
+    );
+    messages.contactPhone3 = Validator.require(
+      formData.contactPhone3,
+      textScreens.contactPhone3
+    );
+    messages.workplaceName = Validator.require(
+      formData.workplaceName,
+      textScreens.workplaceName
+    );
+    messages.workplaceAddress = Validator.require(
+      formData.workplaceAddress,
+      textScreens.workplaceAddress
+    );
 
     const filteredErrors = Object.fromEntries(
       Object.entries(messages).filter(([_, v]) => v)
@@ -99,7 +143,7 @@ export default function CreatePage() {
 
     setErrors(filteredErrors);
     return Object.keys(filteredErrors).length === 0;
-  }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -120,7 +164,6 @@ export default function CreatePage() {
     // const form = new FormData();
     // Object.keys(formData).forEach((key) => form.append(key, formData[key]));
     // imageFiles.forEach((file) => form.append("images_url[]", file));
-
   };
 
   const redirectList = () => {
@@ -257,7 +300,6 @@ export default function CreatePage() {
               value={formData.bankName}
               onChange={handleChange}
               errorMessage={errors.bankName}
-
             />
             <_InputField
               label="Số tài khoản"

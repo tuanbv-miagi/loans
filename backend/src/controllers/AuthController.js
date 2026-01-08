@@ -13,13 +13,11 @@ const authController = {
       });
     } catch (error) {
       console.error("Login error: ", error);
-      return res.status(500).json({ message: "Lỗi server"});
+      return res.status(500).json({ message: "Lỗi server" });
     }
   },
 
-  async createAccount(req, res) {
-
-  }
+  async createAccount(req, res) {},
 };
 
 module.exports = authController;

@@ -1,5 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { Search, Edit, Trash2, Eye, RotateCcw, Eraser, Loader2 } from "lucide-react";
+import {
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  RotateCcw,
+  Eraser,
+  Loader2,
+} from "lucide-react";
 import baseApi from "../../api/baseApi";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/ConfirmDialog";
@@ -8,19 +16,17 @@ import SlideAlert from "../../components/SlideAlert";
 
 export default function CustomerPage() {
   const form = {
-    name: '',
-    email: '',
-    phone: '',
-    nationalId: '',
-    isSpamZalo: '',
-    isSpamIcloud: '',
+    name: "",
+    email: "",
+    phone: "",
+    nationalId: "",
+    isSpamZalo: "",
+    isSpamIcloud: "",
   };
   const PAGE_DEFAULT = 1;
   const LIMIT = 10;
   const navigate = useNavigate();
 
-  // const [search, setSearch] = useState("");
-  // const [isOpenModal, setIsOpenModal] = useState(false);
   const [isOpenModalDelete, setIsOpenModalDelete] = useState(false);
   const [customers, setCustomers] = useState([]);
   const [formSearch, setFormSearch] = useState(form);
@@ -59,7 +65,7 @@ export default function CustomerPage() {
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
     getAllData();
@@ -75,19 +81,23 @@ export default function CustomerPage() {
 
   const resetForm = () => {
     setFormSearch(form);
-  }
+  };
 
   const redirectCreatePage = () => {
-    navigate("/customers/create")
-  }
+    navigate("/customers/create");
+  };
 
   const redirectDetail = (id) => {
-    navigate(`/customers/${id}`)
-  }
+    navigate(`/customers/${id}`);
+  };
+
+  const redirectEdit = (id) => {
+    navigate(`/customers/${id}/edit`);
+  };
 
   const handleDelete = () => {
     // TODO handle logic delete
-  }
+  };
 
   return (
     <div className="space-y-6">
@@ -105,7 +115,8 @@ export default function CustomerPage() {
           <button className="px-4 py-2 bg-green-600 text-white rounded-lg shadow hover:bg-green-700 transition w-[11rem] mr-[10px]">
             Xuất excel
           </button>
-          <button className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition w-[11rem]"
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition w-[11rem]"
             onClick={() => redirectCreatePage()}
           >
             + Thêm khách hàng
@@ -136,9 +147,7 @@ export default function CustomerPage() {
 
           {/* Nhập email */}
           <div className="flex flex-col space-y-1">
-            <label className="font-medium text-gray-700 text-sm">
-              Email
-            </label>
+            <label className="font-medium text-gray-700 text-sm">Email</label>
             <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all">
               <input
                 type="text"
@@ -229,7 +238,7 @@ export default function CustomerPage() {
             className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
           >
             <div className="flex align-anchor">
-              <Eraser size={20}/>
+              <Eraser size={20} />
               <span className="ml-[5px]">Làm mới</span>
             </div>
           </button>
@@ -242,7 +251,7 @@ export default function CustomerPage() {
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ml-3"
           >
             <div className="flex align-anchor">
-              <Search size={20}/>
+              <Search size={20} />
               <span className="ml-[5px]">Tìm kiếm</span>
             </div>
           </button>
@@ -282,9 +291,14 @@ export default function CustomerPage() {
               </tr>
             ) : (
               customers.map((customer, index) => (
-                <tr key={customer.id} className="border-t hover:bg-gray-50 text-center">
+                <tr
+                  key={customer.id}
+                  className="border-t hover:bg-gray-50 text-center"
+                >
                   <td className="p-3 font-medium">{index + 1}</td>
-                  <td className="p-3 font-medium">{customer.lastName + " " + customer.firstName}</td>
+                  <td className="p-3 font-medium">
+                    {customer.lastName + " " + customer.firstName}
+                  </td>
                   <td className="p-3">{customer.nationalId}</td>
                   <td className="p-3">{customer.phone}</td>
                   <td className="p-3">{customer.email}</td>
@@ -313,15 +327,20 @@ export default function CustomerPage() {
                     )}
                   </td>
                   <td className="p-3 flex justify-center gap-3">
-                    <button className="text-blue-600 hover:text-blue-800"
-                      onClick={() => redirectDetail(1)}
+                    <button
+                      className="text-blue-600 hover:text-blue-800"
+                      onClick={() => redirectDetail(customer.id)}
                     >
                       <Eye size={18} />
                     </button>
-                    <button className="text-yellow-600 hover:text-yellow-800">
+                    <button
+                      className="text-yellow-600 hover:text-yellow-800"
+                      onClick={() => redirectEdit(customer.id)}
+                    >
                       <Edit size={18} />
                     </button>
-                    <button className="text-red-600 hover:text-red-800"
+                    <button
+                      className="text-red-600 hover:text-red-800"
                       onClick={() => setIsOpenModalDelete(true)}
                     >
                       <Trash2 size={18} />

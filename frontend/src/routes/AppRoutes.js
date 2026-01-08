@@ -7,6 +7,7 @@ import Login from "../pages/login";
 import Dashboard from "../pages/dashboard";
 import CustomerPage from "../pages/customer/index";
 import CreateCustomerPage from "../pages/customer/create";
+import CustomerUpdatePage from "../pages/customer/update";
 import CustomerShowPage from "../pages/customer/show";
 import LoanPage from "../pages/loan/index";
 import LoanCreatePage from "../pages/loan/create";
@@ -65,6 +66,14 @@ export default function AppRoutes() {
         element={
           <DashboardLayout>
             <CustomerShowPage />
+          </DashboardLayout>
+        }
+      />
+      <Route
+        path="/customers/:id/edit"
+        element={
+          <DashboardLayout>
+            <CustomerUpdatePage />
           </DashboardLayout>
         }
       />

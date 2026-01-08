@@ -11,14 +11,14 @@ class AuthService {
       return {
         status: 401,
         message: "Tên đăng nhập hoặc mật khẩu không đúng",
-      }
+      };
     }
 
     if (user.status !== 0) {
       return {
         status: 403,
         message: "Tài khoản bị khóa. Vui lòng liên hệ quản trị viên",
-      }
+      };
     }
 
     const ok = await bcrypt.compare(password, user.password);
@@ -26,14 +26,14 @@ class AuthService {
       return {
         status: 401,
         message: "Mật khẩu không đúng",
-      }
+      };
     }
 
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_EXPIRES }
-    )
+    );
 
     await userRepo.updateLastLogin(user.id);
 
@@ -47,10 +47,10 @@ class AuthService {
           userName: user.userName,
           fullName: user.fullName,
           email: user.email,
-          role: user.role
-        }
-      }
-    }
+          role: user.role,
+        },
+      },
+    };
   }
 }
 

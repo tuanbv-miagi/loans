@@ -18,6 +18,53 @@ class CustomerRepository {
   }
 
   /**
+   * Get customer by ID
+   * @param {*} id
+   * @param {*} prismaClient
+   * @returns customer
+   */
+  getDataById(id, prismaClient = prisma) {
+    return prismaClient.customer.findFirst({
+      where: { id: Number(id), deletedAt: null },
+    });
+  }
+
+  /**
+   * Get customer by ID with relations
+   * @param {*} id
+   * @param {*} prismaClient
+   * @returns customer with relations
+   */
+  findByIdWithRelations(id, prismaClient = prisma) {
+    return prismaClient.customer.findFirst({
+      where: {
+        id: Number(id),
+        deletedAt: null,
+      },
+      include: {
+        customerInfo: {
+          where: {
+            deletedAt: null,
+          },
+        },
+        loans: {
+          where: {
+            deletedAt: null,
+          },
+          orderBy: {
+            createdAt: "desc",
+          },
+        },
+        telegram: {
+          where: {
+            deletedAt: null,
+          },
+        },
+      },
+    });
+  }
+
+  /**
    * Create new customer
    * @param {*} data
    * @param {*} prismaClient
@@ -26,6 +73,19 @@ class CustomerRepository {
   create(data, prismaClient = prisma) {
     return prismaClient.customer.create({
       data,
+    });
+  }
+
+  /**
+   * Update customer
+   * @param {*} id
+   * @param {*} data
+   * @returns updated customer
+   */
+  update(id, data, prismaClient = prisma) {
+    return prismaClient.customer.update({
+      where: { id: Number(id) },
+      data: data,
     });
   }
 

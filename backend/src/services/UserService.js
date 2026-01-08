@@ -12,8 +12,8 @@ class UserService {
       status: 200,
       message: "Lấy danh sách người dùng thành công",
       data: users,
-    }
-  };
+    };
+  }
 
   /**
    * Get paginated users with filter
@@ -30,7 +30,7 @@ class UserService {
       status: atttributes.paramSearch?.status || null,
       page: page,
       limit: limit,
-    }
+    };
     const { rows, count } = await userRepo.findAllWithFilter(params);
 
     return {
@@ -40,9 +40,9 @@ class UserService {
         page: page,
         limit: limit,
         totalPages: Math.ceil(count / limit),
-      }
-    }
-  };
+      },
+    };
+  }
 
   /**
    * Create new user
@@ -55,7 +55,7 @@ class UserService {
       return {
         status: 400,
         message: "Email đã tồn tại",
-      }
+      };
     }
 
     const hashedPassword = await bcrypt.hash(attributes.password, 10);
@@ -68,7 +68,7 @@ class UserService {
       role: attributes.role == "user" ? 0 : 1,
       status: 0,
       lastLogin: new Date(),
-    })
+    });
 
     return {
       id: newUser.id,
@@ -76,8 +76,8 @@ class UserService {
       fullName: newUser.fullName,
       email: newUser.email,
       role: newUser.role,
-    }
-  };
+    };
+  }
 
   /**
    * Update user
@@ -91,11 +91,11 @@ class UserService {
       return {
         status: 404,
         message: "Người dùng không tồn tại",
-      }
+      };
     }
     const updatedUser = await userRepo.update(id, attributes);
     return updatedUser;
-  };
+  }
 
   /**
    * Delete user
@@ -108,15 +108,12 @@ class UserService {
       return {
         status: 404,
         message: "Người dùng không tồn tại",
-      }
+      };
     }
-    const deletedUser = await userRepo.update(
-      id,
-      { deletedAt: new Date() }
-    );
+    const deletedUser = await userRepo.update(id, { deletedAt: new Date() });
 
     return deletedUser;
-  };
+  }
 
   /**
    * Lock user
@@ -128,10 +125,7 @@ class UserService {
     if (!user) {
       return null;
     }
-    const updateUser = await userRepo.update(
-      id,
-      { status: 1 }
-    )
+    const updateUser = await userRepo.update(id, { status: 1 });
     return updateUser;
   }
 
@@ -145,12 +139,8 @@ class UserService {
     if (!user) {
       return null;
     }
-    const updateUser = await userRepo.update(
-      id,
-      { status: 0 }
-    )
+    const updateUser = await userRepo.update(id, { status: 0 });
   }
 }
 
 module.exports = new UserService();
-
