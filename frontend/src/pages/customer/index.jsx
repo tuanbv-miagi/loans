@@ -38,6 +38,7 @@ export default function CustomerPage() {
   const [alertType, setAlertType] = useState("success");
   const [alertMsg, setAlertMsg] = useState("");
   const [alertId, setAlertId] = useState("");
+  const [customerId, setCustomerId] = useState(null);
 
   const getAllData = async (search = formSearch) => {
     const params = {
@@ -95,8 +96,29 @@ export default function CustomerPage() {
     navigate(`/customers/${id}/edit`);
   };
 
-  const handleDelete = () => {
-    // TODO handle logic delete
+  const handleDelete = async () => {
+    try {
+      setLoading(true);
+      const response = await baseApi.delete(`/customers/delete/${customerId}`);
+      if (response?.status === 200) {
+        await getAllData();
+        setIsOpenModalDelete(false);
+      }
+      setIsOpenAlert(true);
+      setAlertId("customer_delete");
+      setAlertMsg(response.message);
+      setAlertType(response?.status === 200 ? "success" : "error");
+    } catch (error) {
+      setIsOpenAlert(true);
+      setAlertId("customer_delete");
+      setAlertMsg(
+        error?.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại sau"
+      );
+      setAlertType("error");
+    } finally {
+      setCustomerId(null);
+      setLoading(false);
+    }
   };
 
   return (
@@ -341,7 +363,10 @@ export default function CustomerPage() {
                     </button>
                     <button
                       className="text-red-600 hover:text-red-800"
-                      onClick={() => setIsOpenModalDelete(true)}
+                      onClick={() => (
+                        setIsOpenModalDelete(true),
+                        setCustomerId(customer.id)
+                      )}
                     >
                       <Trash2 size={18} />
                     </button>

@@ -1,6 +1,8 @@
 const prisma = require("../../prisma/client");
 const customerRepo = require("../repositories/CustomerRepository");
 const customerInfoRepo = require("../repositories/CustomerInfoRepository");
+const loanRepo = require("../repositories/LoanRepository");
+const telegramUserRepo = require("../repositories/TelegramUserRepository");
 
 class CustomerService {
   /**
@@ -120,9 +122,30 @@ class CustomerService {
     return customer;
   }
 
-  async update(id, attributes) {}
+  /**
+   * Delete customer
+   * @param {*} id
+   * @returns deleted customer
+   */
+  async deleteData(id) {
+    return prisma.$transaction(async (tx) => {
+      const customerId = Number(id);
 
-  async delete(id) {}
+      const updatedCustomer = await customerRepo.update(
+        customerId,
+        { deletedAt: new Date() },
+        tx
+      );
+
+      await Promise.all([
+        customerInfoRepo.softDeleteByCustomerId(customerId, tx),
+        loanRepo.softDeleteByCustomerId(customerId, tx),
+        telegramUserRepo.softDeleteByCustomerId(customerId, tx),
+      ]);
+
+      return updatedCustomer;
+    });
+  }
 
   /**
    * Paginate customers with filter

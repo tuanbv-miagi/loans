@@ -5,7 +5,7 @@ import SlideAlert from "../../components/SlideAlert";
 import { Loader2 } from "lucide-react";
 import { formatDateTime } from "../../utils/DateFormat";
 
-export default function LoanShowPage() {
+export default function LoanEditPage() {
   const [interestRate] = useState(0.4);
   const [duration] = useState(40);
   const [startDate, setStartDate] = useState("");
@@ -18,6 +18,7 @@ export default function LoanShowPage() {
   const [alertMsg, setAlertMsg] = useState("");
   const [alertId, setAlertId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({});
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -34,18 +35,60 @@ export default function LoanShowPage() {
     setDailyPayment(daily);
   };
 
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    setFormData((prev) => {
+      let newValue = value;
+
+      // checkbox
+      if (type === "checkbox") {
+        newValue = checked;
+      }
+
+      // select status (ép về number)
+      if (name === "status") {
+        newValue = value === "" ? null : Number(value);
+      }
+
+      return {
+        ...prev,
+        [name]: newValue,
+      };
+    });
+  };
+
   const formatCurrency = (num) => num.toLocaleString("vi-VN") + " VNĐ";
 
   const getDetail = async () => {
     try {
       setLoading(true);
       const response = await baseApi.get(`/loans/${id}`);
+
       setLoan(response.data);
       calculateLoan(response.data.amount);
     } catch (error) {
       console.error("Lỗi khi lấy dữ liệu:", error);
       setIsOpenAlert(true);
-      setAlertId("customer_detail_error");
+      setAlertId("loan_detail_error");
+      setAlertMsg(
+        error?.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại sau"
+      );
+      setAlertType("error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditData = async () => {
+    try {
+      setLoading(true);
+      await baseApi.post(`/loans/update/${id}`, formData);
+      navigate(-1);
+    } catch (error) {
+      console.error("Lỗi khi cập nhật dữ liệu:", error);
+      setIsOpenAlert(true);
+      setAlertId("loan_edit_error");
       setAlertMsg(
         error?.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại sau"
       );
@@ -78,7 +121,7 @@ export default function LoanShowPage() {
             alertId={alertId}
           />
 
-          <h1 className="text-2xl font-semibold">Chi tiết khoản vay</h1>
+          <h1 className="text-2xl font-semibold">Cập nhật khoản vay</h1>
 
           {/* ===== CUSTOMER CARD ===== */}
           <div className="bg-white p-4 shadow rounded-lg mt-[20px]">
@@ -159,6 +202,22 @@ export default function LoanShowPage() {
                     />
                   </div>
                 </div>
+
+                <div className="mt-[10px]">
+                  <label className="font-medium">Trạng thái</label>
+                  <select
+                    name="status"
+                    value={loan.status ?? ""}
+                    onChange={handleInputChange}
+                    placeholder="Chọn trạng thái"
+                    className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all w-full"
+                  >
+                    <option value=""></option>
+                    <option value="0">Đang thanh toán</option>
+                    <option value="1">Đã trả</option>
+                    <option value="2">Trễ hạn</option>
+                  </select>
+                </div>
               </div>
 
               {/* Right */}
@@ -198,10 +257,18 @@ export default function LoanShowPage() {
             <div className="flex justify-end gap-3 mt-8">
               <button
                 type="button"
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg"
                 onClick={() => navigate(-1)}
               >
-                Quay lại
+                Hủy
+              </button>
+
+              <button
+                type="button"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg"
+                onClick={() => handleEditData()}
+              >
+                Lưu thay đổi
               </button>
             </div>
           </div>

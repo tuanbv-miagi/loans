@@ -245,7 +245,7 @@ export default function CreatePage() {
               onChange={handleChange}
               errorMessage={errors.address}
             />
-            <_InputField
+            {/* <_InputField
               label="Số tiền vay"
               name="amount"
               value={formData.amount}
@@ -259,7 +259,7 @@ export default function CreatePage() {
               value={formData.interestRate}
               readOnly
               errorMessage={errors.interestRate}
-            />
+            /> */}
             <_InputField
               label="Ngày cấp CCCD"
               name="idCardIssueDate"

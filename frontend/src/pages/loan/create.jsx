@@ -53,14 +53,14 @@ export default function LoanCreatePage() {
 
   const handleSave = async () => {
     try {
+      const due = new Date(startDate);
       const formData = {
         customerId: selectedCustomer.id,
         amount: Number(amount),
         interestRate: interestRate,
         startDate: new Date(startDate),
-        dueDate: new Date(dueDate),
-        dayAmount: Number(dailyPayment),
-        paidAmount: Number(interestAmount),
+        dueDate: new Date(due.setDate(due.getDate() + duration)),
+        paidAmount: Number(totalAmount),
       };
 
       await baseApi.post("/loans/create", formData);
@@ -69,7 +69,7 @@ export default function LoanCreatePage() {
       setAlertMsg("Tạo khoản vay thành công");
       setAlertId("loan_create");
       customerIdFromUrl
-        ? navigate(`/customers/update/${customerIdFromUrl}`)
+        ? navigate(`/customers/${customerIdFromUrl}/edit`)
         : navigate("/loans");
     } catch (error) {
       console.error("Lỗi khi tạo khoản vay:", error);
@@ -122,7 +122,7 @@ export default function LoanCreatePage() {
             </option>
             {customers.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.full_name} - {c.phone}
+                {c.lastName + " " + c.firstName} - {c.phone}
               </option>
             ))}
           </select>

@@ -1,37 +1,12 @@
 import React, { useState } from "react";
-import { Search, Edit, Trash2, Eye, Eraser } from "lucide-react";
+import { Search, Edit, Trash2, Eye, Eraser, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import ConfirmDialog from "../../components/ConfirmDialog";
-
-const loans = [
-  {
-    id: 1,
-    customer: "Nguyễn Văn A",
-    amount: 50000000,
-    interestRate: 5,
-    startDate: "2025-08-01",
-    dueDate: "2025-09-01",
-    status: "Đang vay",
-  },
-  {
-    id: 2,
-    customer: "Trần Thị B",
-    amount: 100000000,
-    interestRate: 6,
-    startDate: "2025-07-15",
-    dueDate: "2025-08-15",
-    status: "Quá hạn",
-  },
-  {
-    id: 3,
-    customer: "Lê Văn C",
-    amount: 30000000,
-    interestRate: 4,
-    startDate: "2025-07-25",
-    dueDate: "2025-08-25",
-    status: "Tất toán",
-  },
-];
+import baseApi from "../../api/baseApi";
+import SlideAlert from "../../components/SlideAlert";
+import { useEffect } from "react";
+import { formatDateTime } from "../../utils/DateFormat";
+import Paginate from "../../components/paginate";
 
 export default function LoanPage() {
   const form = {
@@ -41,22 +16,22 @@ export default function LoanPage() {
     status: "",
     amount: "",
   };
+  const PAGE_DEFAULT = 1;
+  const LIMIT = 10;
   const navigate = useNavigate();
-  const [search, setSearch] = useState("");
+  // const [search, setSearch] = useState("");
   const [isOpenModalDelete, setIsOpenModalDelete] = useState(false);
   const [formSearch, setFormSearch] = useState(form);
-
-  const filtered = loans.filter((l) =>
-    l.customer.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const redirectDetail = (id) => {
-    navigate(`/loans/${id}`);
-  };
-
-  const redirectCreate = () => {
-    navigate("/loans/create");
-  };
+  const [loans, setLoans] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [page, setPage] = useState(PAGE_DEFAULT);
+  const [limit, setLimit] = useState(LIMIT);
+  const [total, setTotal] = useState(0);
+  const [isOpenAlert, setIsOpenAlert] = useState(false);
+  const [alertType, setAlertType] = useState("success");
+  const [alertMsg, setAlertMsg] = useState("");
+  const [alertId, setAlertId] = useState("");
+  const [loanId, setLoanId] = useState(null);
 
   const handleChangeFormSearch = (e) => {
     const { name, value } = e.target;
@@ -66,16 +41,89 @@ export default function LoanPage() {
     }));
   };
 
-  const handleDelete = () => {
-    // TODO handle logic
+  const handleDelete = async () => {
+    try {
+      setLoading(true);
+      const response = await baseApi.delete(`/loans/delete/${loanId}`);
+      if (response?.status === 200) {
+        await getAllData();
+        setIsOpenModalDelete(false);
+      }
+      setIsOpenAlert(true);
+      setAlertId("loan_delete");
+      setAlertMsg(response.message);
+      setAlertType(response?.status === 200 ? "success" : "error");
+    } catch (error) {
+      setIsOpenAlert(true);
+      setAlertId("loan_delete");
+      setAlertMsg(
+        error?.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại sau"
+      );
+      setAlertType("error");
+    } finally {
+      setLoanId(null);
+      setLoading(false);
+    }
   };
 
   const resetForm = () => {
     setFormSearch(form);
+    getAllData(form);
   };
+
+  const getAllData = async (search = formSearch) => {
+    const params = {
+      page: page,
+      limit: limit,
+      paramSearch: search,
+    };
+    try {
+      setLoading(true);
+      const response = await baseApi.post("/loans/paginate", params);
+      response.data = response?.data.map((item, index) => ({
+        ...item,
+        no: (page - 1) * limit + index + 1,
+      }));
+      setLoans(response.data);
+      setTotal(response.pagination.total);
+    } catch (error) {
+      console.error("Lỗi khi lấy dữ liệu:", error);
+      setIsOpenAlert(true);
+      setAlertId("loans_get_list");
+      setAlertMsg(
+        error?.response?.data?.message || "Lỗi hệ thống, vui lòng thử lại sau"
+      );
+      setAlertType("error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const redirectDetail = (id) => {
+    navigate(`/loans/${id}`);
+  };
+
+  const redirectEdit = (id) => {
+    navigate(`/loans/${id}/edit`);
+  };
+
+  const redirectCreate = () => {
+    navigate("/loans/create");
+  };
+
+  useEffect(() => {
+    getAllData();
+  }, []);
 
   return (
     <div className="space-y-6">
+      <SlideAlert
+        open={isOpenAlert}
+        onClose={() => setIsOpenAlert(false)}
+        type={alertType}
+        message={alertMsg}
+        alertId={alertId}
+      />
       {/* Header */}
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Quản lý khoản vay</h2>
@@ -134,8 +182,8 @@ export default function LoanPage() {
             <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all">
               <input
                 type="date"
-                name="fromDate"
-                value={formSearch.fromDate || ""}
+                name="startDate"
+                value={formSearch.startDate || ""}
                 onChange={handleChangeFormSearch}
                 className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-400"
               />
@@ -150,8 +198,8 @@ export default function LoanPage() {
             <div className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all">
               <input
                 type="date"
-                name="toDate"
-                value={formSearch.toDate || ""}
+                name="endDate"
+                value={formSearch.endDate || ""}
                 onChange={handleChangeFormSearch}
                 className="flex-1 outline-none bg-transparent text-gray-800 placeholder-gray-400"
               />
@@ -170,8 +218,9 @@ export default function LoanPage() {
               className="flex items-center border border-gray-300 rounded-lg px-3 py-2 bg-white focus-within:ring-2 focus-within:ring-blue-500 transition-all"
             >
               <option value=""></option>
-              <option value="true">Hoạt động</option>
-              <option value="false">Khóa</option>
+              <option value="0">Đang thanh toán</option>
+              <option value="1">Đã trả</option>
+              <option value="2">Trễ hạn</option>
             </select>
           </div>
         </div>
@@ -188,7 +237,13 @@ export default function LoanPage() {
             </div>
           </button>
 
-          <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ml-3">
+          <button
+            className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 ml-3"
+            onClick={() => {
+              setPage(1);
+              getAllData();
+            }}
+          >
             <div className="flex align-anchor">
               <Search size={20} />
               <span className="ml-[5px]">Tìm kiếm</span>
@@ -213,74 +268,90 @@ export default function LoanPage() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map((l, index) => (
-              <tr key={l.id} className="border-t hover:bg-gray-50">
-                <td className="p-3">{index + 1}</td>
-                <td className="p-3 font-medium">{l.customer}</td>
-                <td className="p-3">₫ {l.amount.toLocaleString()}</td>
-                <td className="p-3">{l.interestRate}%</td>
-                <td className="p-3">{l.startDate}</td>
-                <td className="p-3">{l.dueDate}</td>
-                <td className="p-3">
-                  {l.status === "Đang vay" && (
-                    <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-600">
-                      {l.status}
-                    </span>
-                  )}
-                  {l.status === "Tất toán" && (
-                    <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-600">
-                      {l.status}
-                    </span>
-                  )}
-                  {l.status === "Quá hạn" && (
-                    <span className="px-2 py-1 text-xs rounded bg-red-100 text-red-600">
-                      {l.status}
-                    </span>
-                  )}
-                </td>
-                <td className="p-3 flex justify-center gap-3">
-                  <button
-                    className="text-blue-600 hover:text-blue-800"
-                    onClick={() => redirectDetail(1)}
-                  >
-                    <Eye size={18} />
-                  </button>
-                  <button className="text-yellow-600 hover:text-yellow-800">
-                    <Edit size={18} />
-                  </button>
-                  <button
-                    className="text-red-600 hover:text-red-800"
-                    onClick={() => setIsOpenModalDelete(true)}
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {filtered.length === 0 && (
+            {loading ? (
               <tr>
-                <td colSpan="8" className="p-4 text-center text-gray-500">
-                  Không tìm thấy khoản vay
+                <td colSpan="10" className="text-center py-16">
+                  <div className="flex flex-col justify-center items-center text-gray-500">
+                    <Loader2 className="animate-spin w-8 h-8 mb-3 text-blue-500" />
+                    <span>Đang tải dữ liệu...</span>
+                  </div>
                 </td>
               </tr>
+            ) : loans.length === 0 ? (
+              <tr>
+                <td colSpan="10" className="text-center text-gray-500 py-8">
+                  Không có dữ liệu.
+                </td>
+              </tr>
+            ) : (
+              loans.map((loan, index) => (
+                <tr key={loan.id} className="border-t hover:bg-gray-50">
+                  <td className="p-3">{loan.no}</td>
+                  <td className="p-3 font-medium">
+                    {loan?.customer?.lastName + " " + loan?.customer?.firstName}
+                  </td>
+                  <td className="p-3">₫ {loan.amount.toLocaleString()}</td>
+                  <td className="p-3">{loan.interestRate}%</td>
+                  <td className="p-3">
+                    {formatDateTime(loan.startDate, "YYYY/MM/DD")}
+                  </td>
+                  <td className="p-3">
+                    {formatDateTime(loan.dueDate, "YYYY/MM/DD")}
+                  </td>
+                  <td className="p-3">
+                    {loan.status == "0" && (
+                      <span className="px-2 py-1 text-xs rounded bg-blue-100 text-blue-600">
+                        Đang thanh toán
+                      </span>
+                    )}
+                    {loan.status == "1" && (
+                      <span className="px-2 py-1 text-xs rounded bg-green-100 text-green-600">
+                        Đã trả
+                      </span>
+                    )}
+                    {loan.status == "2" && (
+                      <span className="px-2 py-1 text-xs rounded bg-red-100 text-red-600">
+                        Trễ hạn
+                      </span>
+                    )}
+                  </td>
+                  <td className="p-3 flex justify-center gap-3">
+                    <button
+                      className="text-blue-600 hover:text-blue-800"
+                      onClick={() => redirectDetail(loan.id)}
+                    >
+                      <Eye size={18} />
+                    </button>
+                    <button className="text-yellow-600 hover:text-yellow-800"
+                      onClick={() => redirectEdit(loan.id)}
+                    >
+                      <Edit size={18} />
+                    </button>
+                    <button
+                      className="text-red-600 hover:text-red-800"
+                      onClick={() => (
+                        setIsOpenModalDelete(true), setLoanId(loan.id)
+                      )}
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </td>
+                </tr>
+              ))
             )}
           </tbody>
         </table>
       </div>
 
-      {/* Pagination (demo tĩnh) */}
-      <div className="flex justify-end gap-2">
-        <button className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">
-          Trước
-        </button>
-        <button className="px-3 py-1 bg-blue-600 text-white rounded">1</button>
-        <button className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">
-          2
-        </button>
-        <button className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">
-          Sau
-        </button>
-      </div>
+      {/* Pagination */}
+      <Paginate
+        setPage={setPage}
+        page={page}
+        total={total}
+        setLimit={setLimit}
+        limit={limit}
+        getList={getAllData}
+      />
 
       <ConfirmDialog
         open={isOpenModalDelete}

@@ -90,6 +90,26 @@ const CustomerController = {
   },
 
   /**
+   * Delete customer
+   * @param {*} req
+   * @param {*} res
+   * @returns deleted customer
+   */
+  async delete(req, res) {
+    try {
+      const { id } = req.params;
+      await customerService.deleteData(id);
+      return res.status(200).json({
+        status: 200,
+        message: "Xoá khách hàng thành công",
+      });
+    } catch (error) {
+      console.error("Delete customer error: ", error);
+      return res.status(500).json({ message: "Lỗi server" });
+    }
+  },
+
+  /**
    * Get paginated customers with filter
    * @param {*} req
    * @param {*} res

@@ -136,6 +136,13 @@ export default function UpdatePage() {
 
   const images = customer?.customerInfo?.images_url || [];
 
+  const loanStatus = (status) => {
+    let text = "Đang thanh toán";
+    if (status == 1) text = "Đã trả";
+    if (status == 2) text = "Trễ hạn";
+    return text;
+  }
+
   return (
     <div className="p-4 space-y-6">
       <SlideAlert
@@ -257,7 +264,7 @@ export default function UpdatePage() {
             <StatBox
               label="Tổng tiền vay"
               value={formatCurrency(
-                customer?.loans?.reduce((s, l) => s + l.amount, 0) || 0
+                customer?.loans?.reduce((s, l) => s + Number(l.amount), 0) || 0
               )}
             />
           </div>
@@ -428,7 +435,7 @@ export default function UpdatePage() {
                   <Td>{formatCurrency(loan.paidAmount)}</Td>
                   <Td>{formatDate(loan.startDate)}</Td>
                   <Td>{formatDate(loan.dueDate)}</Td>
-                  <Td>{loan.status}</Td>
+                  <Td>{loanStatus(loan.status)}</Td>
                 </tr>
               ))}
             </tbody>

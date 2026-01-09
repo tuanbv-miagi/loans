@@ -40,6 +40,24 @@ class CustomerInfoRepository {
       },
     });
   }
+
+  /**
+   * Soft delete customer info by customer ID
+   * @param {*} customerId
+   * @param {*} prismaClient
+   * @returns deleted customer info
+   */
+  softDeleteByCustomerId(customerId, prismaClient = prisma) {
+    return prismaClient.customerInfo.updateMany({
+      where: {
+        customerId: Number(customerId),
+        deletedAt: null,
+      },
+      data: {
+        deletedAt: new Date(),
+      },
+    });
+  }
 }
 
 module.exports = new CustomerInfoRepository();
